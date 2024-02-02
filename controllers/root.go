@@ -10,5 +10,9 @@ type Root struct{}
 
 func (root Root) GetRoot(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%v / request", r.Method)
-	io.WriteString(w, "Hello Gymo!")
+	_, err := io.WriteString(w, "Hello Gymo!")
+	if err != nil {
+		log.Printf("write to client failed %v", err)
+		return
+	}
 }
