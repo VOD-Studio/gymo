@@ -24,5 +24,8 @@ func (u User) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(res)
+	_, err = w.Write(res)
+	if err != nil {
+		return
+	}
 }
