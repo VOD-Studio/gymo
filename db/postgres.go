@@ -7,11 +7,11 @@ import (
 	"os"
 )
 
-var pool *pgxpool.Pool
+var Pool *pgxpool.Pool
 
 func InitPostgres() {
 	var err error
-	pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	Pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal("Unable to connect to database:", err)
 	}

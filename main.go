@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"rua.plus/gymo/db"
 
 	"github.com/joho/godotenv"
 
@@ -14,5 +15,6 @@ func main() {
 		log.Println("env file not found")
 	}
 
+	db.InitPostgres()
 	server.InitServer()
 }

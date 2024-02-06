@@ -11,6 +11,6 @@ func NewRouter() {
 	http.HandleFunc("/", root.GetRoot)
 
 	user := new(controllers.User)
-	user.Path = "/xfy"
+	user.Path = "/user/:user"
 	http.HandleFunc(user.Path, user.GetUser)
 }
