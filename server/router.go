@@ -16,5 +16,8 @@ func InitRouter() *gin.Engine {
 	root := controllers.RootController{}
 	v1.GET("/", root.Root)
 
+	user := controllers.User{}
+	v1.GET("/user/:username", user.GetUser)
+
 	return router
 }
