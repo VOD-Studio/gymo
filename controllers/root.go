@@ -1,18 +1,19 @@
 package controllers
 
 import (
-	"io"
-	"log"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type Root struct{}
+type RootController struct{}
 
-func (root Root) GetRoot(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%v / request", r.Method)
-	_, err := io.WriteString(w, "Hello Gymo!")
-	if err != nil {
-		log.Printf("write to client failed %v", err)
-		return
+type RootStatus struct {
+	Status string `json:"status"`
+}
+
+func (root RootController) Root(c *gin.Context) {
+	status := map[string]any{
+		"status": "ok",
 	}
+	c.JSON(http.StatusOK, status)
 }

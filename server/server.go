@@ -2,21 +2,13 @@ package server
 
 import (
 	"log"
-	"net/http"
 	"os"
 )
 
 func InitServer() {
-	log.Println("init server")
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "4000"
-	}
-
-	NewRouter()
-	log.Println("server listening on", port)
-	err := http.ListenAndServe(":"+port, nil)
+	r := InitRouter()
+	err := r.Run("0.0.0.0:" + os.Getenv("PORT"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("start server failed", err)
 	}
 }

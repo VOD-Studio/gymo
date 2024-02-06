@@ -1,16 +1,20 @@
 package server
 
 import (
-	"net/http"
-
+	"github.com/gin-gonic/gin"
 	"rua.plus/gymo/controllers"
 )
 
-func NewRouter() {
-	root := new(controllers.Root)
-	http.HandleFunc("/", root.GetRoot)
+func InitRouter() *gin.Engine {
+	router := gin.New()
 
-	user := new(controllers.User)
-	user.Path = "/user/:user"
-	http.HandleFunc(user.Path, user.GetUser)
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
+	v1 := router.Group("/v1")
+
+	root := controllers.RootController{}
+	v1.GET("/", root.Root)
+
+	return router
 }
