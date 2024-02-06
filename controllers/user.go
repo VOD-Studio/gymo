@@ -7,6 +7,10 @@ import (
 
 type User struct{}
 
+type UserResponse struct {
+	Username string `json:"username"`
+}
+
 func (user User) GetUser(c *gin.Context) {
 	username := c.Param("username")
 
@@ -14,4 +18,6 @@ func (user User) GetUser(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
+
+	c.JSON(http.StatusOK, UserResponse{Username: username})
 }
