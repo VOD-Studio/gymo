@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"rua.plus/gymo/controllers"
 	"rua.plus/gymo/db"
 )

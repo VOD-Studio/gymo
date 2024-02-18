@@ -17,6 +17,7 @@ type User struct {
 type UserResponse struct {
 	Status   string `json:"status"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 type UserQuery struct {
@@ -36,8 +37,7 @@ func (user User) GetUser(c *gin.Context) {
 	}
 
 	res := &UserResponse{
-		Status:   "ok",
-		Username: "",
+		Status: "ok",
 	}
 
 	var u models.User
@@ -52,6 +52,8 @@ func (user User) GetUser(c *gin.Context) {
 		}
 	}
 
+	res.Username = u.Username
+	res.Email = u.Email
 	c.JSON(http.StatusOK, &res)
 }
 
@@ -68,23 +70,27 @@ func (user User) AddUser(c *gin.Context) {
 		return
 	}
 
-	// TODO md5
-
 	u := &models.User{
 		Username: userInfo.Username,
 		Password: userInfo.Password,
 		Email:    userInfo.Email,
 	}
 	if err := u.Create(user.Db); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		if errors.Is(err, models.UserAlreadyExisty) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	res := &UserResponse{
 		Status:   "ok",
 		Username: "",
 	}
-	res.Username = userInfo.Username
+	res.Username = u.Username
+	res.Email = u.Email
 
 	c.JSON(http.StatusOK, &res)
 }
