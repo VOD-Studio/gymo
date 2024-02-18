@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -13,6 +15,6 @@ type User struct {
 	UpdatedAt time.Time `gorm:"default:NOW();not null" json:"updated_at"`
 }
 
-func (user User) GetSingle(username string) {
-
+func (user User) GetSingle(username string, db *gorm.DB) error {
+	return db.Where("username = ?", username).First(&user).Error
 }

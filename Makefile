@@ -9,7 +9,12 @@ build:
 .PHONY: run
 ## run: Build and Run in development mode.
 run:
-	@go run main.go --signal SIGTERM
+	@nodemon --exec go run main.go --signal SIGTERM
+
+.PHONY: run-prod
+## run-prod: Build and Run in production mode.
+run-prod:
+	@nodemon --exec go run main.go --signal SIGTERM
 
 .PHONY: clean
 ## clean: Clean project and previous builds.

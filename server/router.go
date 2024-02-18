@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"rua.plus/gymo/controllers"
+	"rua.plus/gymo/db"
 )
 
 func InitRouter() *gin.Engine {
@@ -16,7 +17,9 @@ func InitRouter() *gin.Engine {
 	root := controllers.RootController{}
 	v1.GET("/", root.Root)
 
-	user := controllers.User{}
+	user := controllers.User{
+		Db: db.Db,
+	}
 	v1.GET("/user/", user.GetUser)
 
 	return router
