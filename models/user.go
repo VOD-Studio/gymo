@@ -7,3 +7,7 @@ type User struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 }
+
+func (user User) GetSingle(username string) {
+
+}
