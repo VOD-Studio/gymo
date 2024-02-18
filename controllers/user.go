@@ -15,6 +15,7 @@ type User struct {
 }
 
 type UserResponse struct {
+	Message  string `json:"message"`
 	Status   string `json:"status"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -42,12 +43,14 @@ func (user User) GetUser(c *gin.Context) {
 
 	var u models.User
 	if err := u.GetSingle(userInfo.Username, user.Db); err != nil {
+		res.Status = "error"
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res.Status = "user not found"
+			res.Message = "user not found"
 			c.JSON(http.StatusOK, &res)
 			return
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			res.Message = err.Error()
+			c.JSON(http.StatusInternalServerError, &res)
 			return
 		}
 	}
@@ -70,25 +73,28 @@ func (user User) AddUser(c *gin.Context) {
 		return
 	}
 
+	res := &UserResponse{
+		Status:   "ok",
+		Username: "",
+	}
+
 	u := &models.User{
 		Username: userInfo.Username,
 		Password: userInfo.Password,
 		Email:    userInfo.Email,
 	}
 	if err := u.Create(user.Db); err != nil {
+		res.Message = err.Error()
+		res.Status = "error"
 		if errors.Is(err, models.UserAlreadyExisty) {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.JSON(http.StatusConflict, &res)
 			return
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, &res)
 			return
 		}
 	}
 
-	res := &UserResponse{
-		Status:   "ok",
-		Username: "",
-	}
 	res.Username = u.Username
 	res.Email = u.Email
 
