@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +18,7 @@ type UserResponse struct {
 	Status   string `json:"status"`
 	Username string `json:"username"`
 }
+
 type UserQuery struct {
 	Username string `form:"username"`
 }
@@ -51,6 +51,40 @@ func (user User) GetUser(c *gin.Context) {
 			return
 		}
 	}
+
+	c.JSON(http.StatusOK, &res)
+}
+
+type UserJson struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+func (user User) AddUser(c *gin.Context) {
+	var userInfo UserJson
+	if err := c.ShouldBindJSON(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// TODO md5
+
+	u := &models.User{
+		Username: userInfo.Username,
+		Password: userInfo.Password,
+		Email:    userInfo.Email,
+	}
+	if err := u.Create(user.Db); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	res := &UserResponse{
+		Status:   "ok",
+		Username: "",
+	}
+	res.Username = userInfo.Username
 
 	c.JSON(http.StatusOK, &res)
 }

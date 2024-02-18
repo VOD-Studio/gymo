@@ -15,6 +15,10 @@ type User struct {
 	UpdatedAt time.Time `gorm:"default:NOW();not null" json:"updated_at"`
 }
 
-func (user User) GetSingle(username string, db *gorm.DB) error {
-	return db.Where("username = ?", username).First(&user).Error
+func (u *User) GetSingle(username string, db *gorm.DB) error {
+	return db.Where("username = ?", username).First(u).Error
+}
+
+func (u *User) Create(db *gorm.DB) error {
+	return db.Create(u).Error
 }

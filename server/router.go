@@ -21,6 +21,7 @@ func InitRouter() *gin.Engine {
 		Db: db.Db,
 	}
 	v1.GET("/user/", user.GetUser)
+	v1.POST("/user/", user.AddUser)
 
 	return router
 }
