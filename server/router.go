@@ -23,6 +23,9 @@ func InitRouter() *gin.Engine {
 	}
 	v1.GET("/user/", user.GetUser)
 	v1.POST("/user/", user.AddUser)
+	v1.PATCH("/user/", user.ModifyUser)
+
+	v1.POST("/login/", user.Login)
 
 	return router
 }

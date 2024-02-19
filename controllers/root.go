@@ -12,8 +12,8 @@ type RootStatus struct {
 }
 
 func (root RootController) Root(c *gin.Context) {
-	status := map[string]any{
-		"status": "ok",
+	status := &RootStatus{
+		Status: "ok",
 	}
 	c.JSON(http.StatusOK, status)
 }

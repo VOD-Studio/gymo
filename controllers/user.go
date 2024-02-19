@@ -22,7 +22,7 @@ type UserResponse struct {
 }
 
 type UserQuery struct {
-	Username string `form:"username"`
+	Username string `form:"username" binding:"required"`
 }
 
 func (user User) GetUser(c *gin.Context) {
@@ -61,9 +61,9 @@ func (user User) GetUser(c *gin.Context) {
 }
 
 type UserJson struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Email    string `json:"email"    binding:"required"`
 }
 
 func (user User) AddUser(c *gin.Context) {
@@ -86,7 +86,7 @@ func (user User) AddUser(c *gin.Context) {
 	if err := u.Create(user.Db); err != nil {
 		res.Message = err.Error()
 		res.Status = "error"
-		if errors.Is(err, models.UserAlreadyExisty) {
+		if errors.Is(err, models.UserAlreadyExist) {
 			c.JSON(http.StatusConflict, &res)
 			return
 		} else {
@@ -99,4 +99,25 @@ func (user User) AddUser(c *gin.Context) {
 	res.Email = u.Email
 
 	c.JSON(http.StatusOK, &res)
+}
+
+func (user User) ModifyUser(c *gin.Context) {
+	res := &UserResponse{
+		Status:  "ok",
+		Message: "not implemented",
+	}
+	c.JSON(http.StatusOK, &res)
+}
+
+type UserLogin struct {
+	Email    string `json:"email"    binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+func (user User) Login(c *gin.Context) {
+	var userInfo UserLogin
+	if err := c.ShouldBindJSON(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 }

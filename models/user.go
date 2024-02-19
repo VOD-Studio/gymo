@@ -21,7 +21,7 @@ func (u *User) GetSingle(username string, db *gorm.DB) error {
 	return db.Where("username = ?", username).First(u).Error
 }
 
-var UserAlreadyExisty = errors.New("user already exist")
+var UserAlreadyExist = errors.New("user already exist")
 
 func (u *User) Create(db *gorm.DB) error {
 	if hash, err := HashPassword(u.Password); err != nil {
@@ -38,7 +38,7 @@ func (u *User) Create(db *gorm.DB) error {
 	if res.RowsAffected == 1 {
 		return nil
 	} else {
-		return UserAlreadyExisty
+		return UserAlreadyExist
 	}
 }
 
