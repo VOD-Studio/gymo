@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"errors"
+	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"rua.plus/gymo/models"
+	"rua.plus/gymo/utils"
 )
 
 type User struct {
@@ -122,28 +123,54 @@ func (user User) Login(c *gin.Context) {
 		return
 	}
 
-	type result struct {
-		ID        uint      `json:"id"`
-		Email     string    `json:"email"`
-		Username  string    `json:"username"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-	}
-	res := &result{}
-	dbResult := user.Db.Model(&models.User{}).
-		Find(&res, "email = ?", userInfo.Email)
+	// query the user
+	u := &models.User{}
+	dbResult := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
 	if dbResult.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": dbResult.Error.Error()})
 		return
 	}
 	if dbResult.RowsAffected == 0 {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "failed",
 			"message": "user not exist",
 		})
 		return
 	}
 
+	// check the password
+	if err := models.CheckPasswordHash(userInfo.Password, u.Password); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "failed",
+			"message": "password not correct",
+		})
+		return
+	}
+
+	// generate token
+	token, err := utils.GenerateToken(int(u.ID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "failed",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	type result struct {
+		ID       uint   `json:"id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Token    string `json:"token"`
+	}
+
+	res := &result{
+		ID:       u.ID,
+		Email:    u.Email,
+		Username: u.Username,
+		Token:    token,
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 		"data":   res,

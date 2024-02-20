@@ -14,7 +14,7 @@ func GenerateToken(user_id int) (string, error) {
 		return "", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"authorized": true,
 		"user_id":    user_id,
 		"exp":        time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix(),
