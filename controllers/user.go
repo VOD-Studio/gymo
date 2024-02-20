@@ -25,7 +25,7 @@ type UserResponse struct {
 }
 
 type UserQuery struct {
-	Username string `form:"username" binding:"required"`
+	Email string `form:"email" binding:"required"`
 }
 
 func (user User) GetUser(c *gin.Context) {
@@ -35,32 +35,37 @@ func (user User) GetUser(c *gin.Context) {
 		return
 	}
 
-	if userInfo.Username == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username is empty"})
+	if userInfo.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email is empty"})
 		return
 	}
 
-	res := &UserResponse{
-		Status: "ok",
+	type result struct {
+		ID       uint   `json:"id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	}
+	u := &result{}
+	res := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": res.Error.Error(),
+		})
+		return
 	}
 
-	var u models.User
-	if err := u.GetSingle(userInfo.Username, user.Db); err != nil {
-		res.Status = "error"
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res.Message = "user not found"
-			c.JSON(http.StatusOK, &res)
-			return
-		} else {
-			res.Message = err.Error()
-			c.JSON(http.StatusInternalServerError, &res)
-			return
-		}
+	if res.RowsAffected == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "user not exist",
+		})
+		return
 	}
 
-	res.Username = u.Username
-	res.Email = u.Email
-	c.JSON(http.StatusOK, &res)
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"data":   u,
+	})
 }
 
 type UserJson struct {
@@ -133,7 +138,7 @@ func (user User) Login(c *gin.Context) {
 	}
 	if dbResult.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "failed",
+			"status":  "error",
 			"message": "user not exist",
 		})
 		return
@@ -143,7 +148,7 @@ func (user User) Login(c *gin.Context) {
 	if err := models.CheckPasswordHash(userInfo.Password, u.Password); err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "failed",
+			"status":  "error",
 			"message": "password not correct",
 		})
 		return
@@ -154,7 +159,7 @@ func (user User) Login(c *gin.Context) {
 	token, err := utils.GenerateToken(int(u.ID), lastLogin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "failed",
+			"status":  "error",
 			"message": err.Error(),
 		})
 		return
