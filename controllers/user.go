@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 
 	"rua.plus/gymo/models"
@@ -112,11 +113,19 @@ func (user User) AddUser(c *gin.Context) {
 }
 
 func (user User) ModifyUser(c *gin.Context) {
-	res := &UserResponse{
-		Status:  "ok",
-		Message: "not implemented",
+	var claims *jwt.MapClaims
+	claim, ok := c.Get("claims")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "parse token failed"})
+		return
 	}
-	c.JSON(http.StatusOK, &res)
+	claims = claim.(*jwt.MapClaims)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"userId": (*claims)["userId"],
+	})
+
 }
 
 type UserLogin struct {

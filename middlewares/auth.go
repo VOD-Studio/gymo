@@ -20,12 +20,13 @@ func TokenAuth() gin.HandlerFunc {
 			})
 		}
 
-		err := utils.ValidToken(tokenArray[1])
+		claims, err := utils.ValidToken(tokenArray[1])
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status": "unauthorized",
 			})
 		}
+		c.Set("claims", claims)
 		c.Next()
 	}
 }

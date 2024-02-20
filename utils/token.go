@@ -16,23 +16,24 @@ func GenerateToken(userId int, lastLogin int64) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userId,
-		"iss":     lastLogin,
-		"exp":     time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix(),
+		"userId": userId,
+		"iss":    lastLogin,
+		"exp":    time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix(),
 	})
 
 	return token.SignedString([]byte(os.Getenv("API_SECRET")))
 }
 
-func ValidToken(tokenString string) error {
-	_, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+func ValidToken(tokenString string) (*jwt.MapClaims, error) {
+	clamis := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, &clamis, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &clamis, nil
 }
