@@ -22,13 +22,13 @@ func InitRouter() *gin.Engine {
 	user := controllers.User{
 		Db: db.Db,
 	}
-	v1.GET("/user/", user.GetUser)
-	v1.POST("/user/", user.AddUser)
-
-	v1.POST("/login/", user.Login)
+	v1.GET("/user/", user.GetUser)      // query single user by query
+	v1.POST("/register/", user.AddUser) // register account
+	v1.POST("/login/", user.Login)      // login
 	v1.Use(middlewares.TokenAuth())
 	v1.Use(middlewares.TokenTimeAuth(db.Db))
-	v1.PATCH("/user/", user.ModifyUser)
+	v1.PATCH("/user/", user.ModifyUser) // modify user infomation
+	/* v1.POST("/user/", ) */ // get current logged in user infomation
 
 	return router
 }

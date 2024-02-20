@@ -16,13 +16,6 @@ type User struct {
 	Db *gorm.DB
 }
 
-type UserResponse struct {
-	Message  string `json:"message"`
-	Status   string `json:"status"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-}
-
 type UserQuery struct {
 	Email string `form:"email" binding:"required"`
 }
@@ -111,6 +104,12 @@ func (user User) AddUser(c *gin.Context) {
 	})
 }
 
+type UserModify struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
 func (user User) ModifyUser(c *gin.Context) {
 	var u *models.User
 	current, ok := c.Get("user")
@@ -119,6 +118,27 @@ func (user User) ModifyUser(c *gin.Context) {
 		return
 	}
 	u = current.(*models.User)
+
+	userInfo := &UserModify{}
+	if err := c.ShouldBindJSON(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if userInfo.Username != "" {
+		u.Username = userInfo.Username
+	}
+	if userInfo.Email != "" {
+		u.Email = userInfo.Email
+	}
+	if userInfo.Password != "" {
+		u.Password = userInfo.Password
+	}
+
+	res := user.Db.Save(u)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
@@ -189,7 +209,7 @@ func (user User) Login(c *gin.Context) {
 
 	// update last login
 	u.LastLogin = lastLogin
-	user.Db.Save(&u)
+	user.Db.Save(u)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
