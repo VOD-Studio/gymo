@@ -64,6 +64,7 @@ func TokenTimeAuth(db *gorm.DB) gin.HandlerFunc {
 			})
 		}
 
+		c.Set("user", user)
 		c.Next()
 	}
 
