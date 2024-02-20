@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -81,32 +80,35 @@ func (user User) AddUser(c *gin.Context) {
 		return
 	}
 
-	res := &UserResponse{
-		Status:   "ok",
-		Username: "",
-	}
-
 	u := &models.User{
 		Username: userInfo.Username,
 		Password: userInfo.Password,
 		Email:    userInfo.Email,
 	}
-	if err := u.Create(user.Db); err != nil {
-		res.Message = err.Error()
-		res.Status = "error"
-		if errors.Is(err, models.UserAlreadyExist) {
-			c.JSON(http.StatusConflict, &res)
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, &res)
-			return
-		}
+	res := user.Db.Model(&models.User{}).Where("email = ?", u.Email).FirstOrCreate(&u)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+		return
+	}
+	if res.RowsAffected == 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "user already exist"})
+		return
 	}
 
-	res.Username = u.Username
-	res.Email = u.Email
-
-	c.JSON(http.StatusOK, &res)
+	type data struct {
+		ID       uint   `json:"id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	}
+	resData := &data{
+		ID:       u.ID,
+		Email:    u.Email,
+		Username: u.Username,
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"data":   resData,
+	})
 }
 
 func (user User) ModifyUser(c *gin.Context) {

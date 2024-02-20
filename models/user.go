@@ -24,23 +24,13 @@ func (u *User) GetSingle(username string, db *gorm.DB) error {
 
 var UserAlreadyExist = errors.New("user already exist")
 
-func (u *User) Create(db *gorm.DB) error {
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if hash, err := HashPassword(u.Password); err != nil {
 		return err
 	} else {
 		u.Password = hash
 	}
-
-	res := db.FirstOrCreate(u)
-	if err := res.Error; err != nil {
-		return err
-	}
-
-	if res.RowsAffected == 1 {
-		return nil
-	} else {
-		return UserAlreadyExist
-	}
+	return
 }
 
 func HashPassword(password string) (string, error) {
