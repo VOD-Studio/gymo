@@ -27,6 +27,7 @@ func InitRouter() *gin.Engine {
 
 	v1.POST("/login/", user.Login)
 	v1.Use(middlewares.TokenAuth())
+	v1.Use(middlewares.TokenTimeAuth(db.Db))
 	v1.PATCH("/user/", user.ModifyUser)
 
 	return router
