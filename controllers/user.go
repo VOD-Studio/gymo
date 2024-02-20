@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -120,4 +121,31 @@ func (user User) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	type result struct {
+		ID        uint      `json:"id"`
+		Email     string    `json:"email"`
+		Username  string    `json:"username"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+	}
+	res := &result{}
+	dbResult := user.Db.Model(&models.User{}).
+		Find(&res, "email = ?", userInfo.Email)
+	if dbResult.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": dbResult.Error.Error()})
+		return
+	}
+	if dbResult.RowsAffected == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "failed",
+			"message": "user not exist",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"data":   res,
+	})
 }
