@@ -15,6 +15,7 @@ type User struct {
 	Password  string    `gorm:"not null"               json:"password"`
 	CreatedAt time.Time `gorm:"default:NOW();not null" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:NOW();not null" json:"updated_at"`
+	LastLogin int64     `                              json:"last_login"`
 }
 
 func (u *User) GetSingle(username string, db *gorm.DB) error {

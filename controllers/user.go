@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -149,7 +150,8 @@ func (user User) Login(c *gin.Context) {
 	}
 
 	// generate token
-	token, err := utils.GenerateToken(int(u.ID))
+	lastLogin := time.Now().Unix()
+	token, err := utils.GenerateToken(int(u.ID), lastLogin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "failed",
@@ -157,20 +159,23 @@ func (user User) Login(c *gin.Context) {
 		})
 		return
 	}
-
 	type result struct {
 		ID       uint   `json:"id"`
 		Email    string `json:"email"`
 		Username string `json:"username"`
 		Token    string `json:"token"`
 	}
-
 	res := &result{
 		ID:       u.ID,
 		Email:    u.Email,
 		Username: u.Username,
 		Token:    token,
 	}
+
+	// update last login
+	u.LastLogin = lastLogin
+	user.Db.Save(&u)
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 		"data":   res,
