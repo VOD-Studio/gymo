@@ -22,5 +22,5 @@ vendor/
 # Go workspace file
 go.work
 .idea
-db
 db-data
+password.txt
