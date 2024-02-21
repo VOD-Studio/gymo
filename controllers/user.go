@@ -138,6 +138,7 @@ func (user User) ModifyUser(c *gin.Context) {
 	}
 	if userInfo.Password != "" {
 		u.Password = userInfo.Password
+		u.HashPassword()
 	}
 
 	res := user.Db.Save(u)

@@ -21,13 +21,17 @@ func (u *User) GetSingle(username string, db *gorm.DB) error {
 	return db.Where("username = ?", username).First(u).Error
 }
 
-func (u *User) BeforeSave(tx *gorm.DB) (err error) {
+func (u *User) HashPassword() (err error) {
 	if hash, err := HashPassword(u.Password); err != nil {
 		return err
 	} else {
 		u.Password = hash
 	}
 	return
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	return u.HashPassword()
 }
 
 func HashPassword(password string) (string, error) {
