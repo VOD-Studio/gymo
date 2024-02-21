@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -243,4 +244,28 @@ func (user User) UserSelf(c *gin.Context) {
 		"data":   response,
 	})
 	return
+}
+
+func (user User) Delete(c *gin.Context) {
+	var u *models.User
+	current, ok := c.Get("user")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "parse token failed"})
+		return
+	}
+	u = current.(*models.User)
+
+	res := user.Db.Model(&models.User{}).Delete(u, "email = ?", u.Email)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": res.Error.Error(),
+		})
+		return
+	}
+	msg := fmt.Sprintf("account %s has been deleted", u.Email)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "ok",
+		"message": msg,
+	})
 }

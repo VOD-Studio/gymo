@@ -29,6 +29,7 @@ func InitRouter() *gin.Engine {
 	v1.Use(middlewares.TokenTimeAuth(db.Db))
 	v1.PATCH("/user/", user.ModifyUser) // modify user infomation
 	v1.POST("/user/", user.UserSelf)    // get current logged in user infomation
+	v1.DELETE("/user/", user.Delete)    // cancel this account
 
 	return router
 }
