@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -22,9 +21,7 @@ func (u *User) GetSingle(username string, db *gorm.DB) error {
 	return db.Where("username = ?", username).First(u).Error
 }
 
-var UserAlreadyExist = errors.New("user already exist")
-
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *User) BeforeSave(tx *gorm.DB) (err error) {
 	if hash, err := HashPassword(u.Password); err != nil {
 		return err
 	} else {
