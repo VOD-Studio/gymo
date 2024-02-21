@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -14,6 +13,12 @@ import (
 
 type User struct {
 	Db *gorm.DB
+}
+
+type BasicInfo struct {
+	ID       uint   `json:"id"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
 }
 
 type UserQuery struct {
@@ -140,9 +145,13 @@ func (user User) ModifyUser(c *gin.Context) {
 		return
 	}
 
+	response := &BasicInfo{}
+	response.ID = u.ID
+	response.Email = u.Email
+	response.Username = u.Username
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
-		"user":   u,
+		"user":   response,
 	})
 
 }
@@ -176,7 +185,6 @@ func (user User) Login(c *gin.Context) {
 
 	// check the password
 	if err := models.CheckPasswordHash(userInfo.Password, u.Password); err != nil {
-		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
 			"message": "password not correct",
@@ -215,4 +223,24 @@ func (user User) Login(c *gin.Context) {
 		"status": "ok",
 		"data":   res,
 	})
+}
+
+func (user User) UserSelf(c *gin.Context) {
+	var u *models.User
+	current, ok := c.Get("user")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "parse token failed"})
+		return
+	}
+	u = current.(*models.User)
+
+	response := &BasicInfo{}
+	response.ID = u.ID
+	response.Email = u.Email
+	response.Username = u.Username
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"data":   response,
+	})
+	return
 }

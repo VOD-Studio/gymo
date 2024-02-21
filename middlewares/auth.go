@@ -21,6 +21,7 @@ func TokenAuth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status": "unauthorized",
 			})
+			return
 		}
 
 		claims, err := utils.ValidToken(tokenArray[1])
@@ -28,6 +29,7 @@ func TokenAuth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status": "unauthorized",
 			})
+			return
 		}
 		c.Set("claims", claims)
 		c.Next()
@@ -42,6 +44,7 @@ func TokenTimeAuth(db *gorm.DB) gin.HandlerFunc {
 				http.StatusInternalServerError,
 				gin.H{"error": "parse token failed"},
 			)
+			return
 		}
 		claims = claim.(*jwt.MapClaims)
 
@@ -52,16 +55,19 @@ func TokenTimeAuth(db *gorm.DB) gin.HandlerFunc {
 				http.StatusInternalServerError,
 				gin.H{"error": res.Error.Error()},
 			)
+			return
 		}
 		if res.RowsAffected == 0 {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status": "unauthorized",
 			})
+			return
 		}
 		if user.LastLogin != int64((*claims)["iss"].(float64)) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status": "token expired",
 			})
+			return
 		}
 
 		c.Set("user", user)
