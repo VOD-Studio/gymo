@@ -22,12 +22,13 @@ services:
   db:
     image: postgres:alpine
     restart: always
-    user: xfy
+    user: postgres
     secrets:
       - db-password
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
+      - POSTGRES_USER=xfy
       - POSTGRES_DB=gymo
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     expose:
@@ -43,4 +44,4 @@ volumes:
 
 secrets:
   db-password:
-    file: password.txt
+    file: ./password.txt
