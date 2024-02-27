@@ -16,6 +16,7 @@ type User struct {
 	Db *gorm.DB
 }
 
+// 基础响应的用户基本信息
 type BasicInfo struct {
 	ID       uint   `json:"id"`
 	Email    string `json:"email"`
@@ -171,6 +172,9 @@ type UserLogin struct {
 	Email    string `json:"email"    binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+type LoginResponse struct {
+	Token string `json:"token"`
+}
 
 func (user User) Login(c *gin.Context) {
 	// response
@@ -217,25 +221,15 @@ func (user User) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	}
-	type result struct {
-		ID       uint   `json:"id"`
-		Email    string `json:"email"`
-		Username string `json:"username"`
-		Token    string `json:"token"`
-	}
-	res := &result{
-		ID:       u.ID,
-		Email:    u.Email,
-		Username: u.Username,
-		Token:    token,
-	}
 
 	// update last login
 	u.LastLogin = lastLogin
 	user.Db.Save(u)
 
 	resp.Status = "ok"
-	resp.Data = res
+	resp.Data = &LoginResponse{
+		Token: token,
+	}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -253,13 +247,10 @@ func (user User) UserSelf(c *gin.Context) {
 	}
 	u = current.(*models.User)
 
-	response := &BasicInfo{}
-	response.ID = u.ID
-	response.Email = u.Email
-	response.Username = u.Username
+	u.Password = ""
 
 	resp.Status = "ok"
-	resp.Data = response
+	resp.Data = u
 	c.JSON(http.StatusOK, resp)
 	return
 }
