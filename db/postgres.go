@@ -41,8 +41,7 @@ func InitPostgres() {
 }
 
 func MigrateDb() {
-	err := Db.AutoMigrate(&models.User{})
-	if err != nil {
+	if err := Db.AutoMigrate(&models.User{}); err != nil {
 		log.Println(err)
 		return
 	}
