@@ -98,7 +98,7 @@ func (user User) AddUser(c *gin.Context) {
 	if res.RowsAffected == 0 {
 		resp.Status = "error"
 		resp.Message = "user already exist"
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusConflict, resp)
 		return
 	}
 
