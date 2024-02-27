@@ -23,10 +23,13 @@ type BasicInfo struct {
 	Username string `json:"username"`
 }
 
+// 查询用户
 type UserQuery struct {
 	Email string `form:"email" binding:"required"`
 }
 
+// 通过 email 查询用户
+// 仅支持 query
 func (user User) GetUser(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -65,12 +68,15 @@ func (user User) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// 用户注册
 type UserJson struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Email    string `json:"email"    binding:"required"`
 }
 
+// 添加用户
+// 仅支持 json body
 func (user User) AddUser(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -88,7 +94,8 @@ func (user User) AddUser(c *gin.Context) {
 		Password: userInfo.Password,
 		Email:    userInfo.Email,
 	}
-	res := user.Db.Model(&models.User{}).Where("email = ?", u.Email).FirstOrCreate(&u)
+
+	res := user.Db.Model(u).Where("email = ?", u.Email).FirstOrCreate(&u)
 	if res.Error != nil {
 		resp.Status = "error"
 		resp.Message = res.Error.Error()
@@ -102,13 +109,9 @@ func (user User) AddUser(c *gin.Context) {
 		return
 	}
 
-	resData := &BasicInfo{
-		ID:       u.ID,
-		Email:    u.Email,
-		Username: u.Username,
-	}
+	u.Password = ""
 	resp.Status = "ok"
-	resp.Data = resData
+	resp.Data = u
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -168,6 +171,7 @@ func (user User) ModifyUser(c *gin.Context) {
 
 }
 
+// 用户登录 json
 type UserLogin struct {
 	Email    string `json:"email"    binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -176,6 +180,8 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+// 用户登录
+// 仅支持 json
 func (user User) Login(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -233,6 +239,8 @@ func (user User) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// 当前登录的用户信息
+// 通过 Token 获取
 func (user User) UserSelf(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -255,6 +263,7 @@ func (user User) UserSelf(c *gin.Context) {
 	return
 }
 
+// 删除当前用户
 func (user User) Delete(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -279,6 +288,6 @@ func (user User) Delete(c *gin.Context) {
 	msg := fmt.Sprintf("account %s has been deleted", u.Email)
 
 	resp.Status = "ok"
-	resp.Data = msg
+	resp.Message = msg
 	c.JSON(http.StatusOK, resp)
 }
