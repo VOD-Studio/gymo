@@ -12,6 +12,7 @@ import (
 	"rua.plus/gymo/utils"
 )
 
+// 验证 Token 并将其添加到上下文中
 func TokenAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
@@ -35,6 +36,9 @@ func TokenAuth() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// 获取 token 并查询到对应到用户
+// 添加到上下文中
 func TokenTimeAuth(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var claims *jwt.MapClaims
