@@ -8,13 +8,17 @@ import (
 )
 
 type User struct {
-	ID        uint      `gorm:"primaryKey"             json:"id"`
-	Email     string    `gorm:"unique;not null"        json:"email"`
-	Username  string    `gorm:"not null"               json:"username"`
-	Password  string    `gorm:"not null"               json:"password"`
-	CreatedAt time.Time `gorm:"default:NOW();not null" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:NOW();not null" json:"updated_at"`
-	LastLogin int64     `                              json:"last_login"`
+	ID          uint      `gorm:"primaryKey"             json:"id"`
+	Email       string    `gorm:"unique;not null"        json:"email"`
+	Username    string    `gorm:"not null"               json:"username"`
+	Password    string    `gorm:"not null"               json:"password"`
+	Description string    `                              json:"description"`
+	Avatar      string    `                              json:"avatar"`
+	Gender      string    `                              json:"gender"`
+	UID         int       `gorm:"unique;not null"        json:"uid"`
+	CreatedAt   time.Time `gorm:"default:NOW();not null" json:"created_at"`
+	UpdatedAt   time.Time `gorm:"default:NOW();not null" json:"updated_at"`
+	LastLogin   int64     `                              json:"last_login"`
 }
 
 func (u *User) GetSingle(username string, db *gorm.DB) error {
@@ -35,7 +39,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(bytes), err
 }
 
