@@ -16,13 +16,6 @@ type User struct {
 	Db *gorm.DB
 }
 
-// 基础响应的用户基本信息
-type BasicInfo struct {
-	ID       uint   `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-}
-
 // 查询用户
 type UserQuery struct {
 	Email string `form:"email" binding:"required"`
@@ -59,11 +52,10 @@ func (user User) GetUser(c *gin.Context) {
 	if res.RowsAffected == 0 {
 		resp.Status = "error"
 		resp.Message = "user not exist"
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusNoContent, resp)
 		return
 	}
 
-	u.Password = ""
 	resp.Status = "ok"
 	resp.Data = u
 	c.JSON(http.StatusOK, resp)
@@ -110,7 +102,6 @@ func (user User) AddUser(c *gin.Context) {
 		return
 	}
 
-	u.Password = ""
 	resp.Status = "ok"
 	resp.Data = u
 	c.JSON(http.StatusOK, resp)
@@ -162,12 +153,8 @@ func (user User) ModifyUser(c *gin.Context) {
 		return
 	}
 
-	response := &BasicInfo{}
-	response.ID = u.ID
-	response.Email = u.Email
-	response.Username = u.Username
 	resp.Status = "ok"
-	resp.Data = response
+	resp.Data = u
 	c.JSON(http.StatusOK, resp)
 
 }
@@ -178,6 +165,7 @@ type UserLogin struct {
 	Password string `json:"password" binding:"required"`
 }
 type LoginResponse struct {
+	*models.User
 	Token string `json:"token"`
 }
 
@@ -207,7 +195,7 @@ func (user User) Login(c *gin.Context) {
 	if dbResult.RowsAffected == 0 {
 		resp.Status = "error"
 		resp.Message = "user not exist"
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusNoContent, resp)
 		return
 	}
 
@@ -215,7 +203,7 @@ func (user User) Login(c *gin.Context) {
 	if err := models.CheckPasswordHash(userInfo.Password, u.Password); err != nil {
 		resp.Status = "error"
 		resp.Message = "password not correct"
-		c.JSON(http.StatusBadRequest, resp)
+		c.JSON(http.StatusUnauthorized, resp)
 		return
 	}
 
@@ -235,6 +223,7 @@ func (user User) Login(c *gin.Context) {
 
 	resp.Status = "ok"
 	resp.Data = &LoginResponse{
+		User:  u,
 		Token: token,
 	}
 	c.JSON(http.StatusOK, resp)
@@ -255,8 +244,6 @@ func (user User) UserSelf(c *gin.Context) {
 		return
 	}
 	u = current.(*models.User)
-
-	u.Password = ""
 
 	resp.Status = "ok"
 	resp.Data = u
