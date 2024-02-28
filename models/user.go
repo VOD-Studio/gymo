@@ -7,6 +7,23 @@ import (
 	"gorm.io/gorm"
 )
 
+type Gender int
+
+const (
+	Male Gender = iota
+	Female
+)
+
+func (g Gender) String() string {
+	switch g {
+	case Male:
+		return "male"
+	case Female:
+		return "female"
+	}
+	return "unknown"
+}
+
 type User struct {
 	ID          uint      `gorm:"primaryKey"                                   json:"id,omitempty"`
 	Email       string    `gorm:"unique;not null"                              json:"email"`
@@ -14,7 +31,7 @@ type User struct {
 	Password    string    `gorm:"not null"                                     json:"password,omitempty"`
 	Description string    `                                                    json:"description"`
 	Avatar      string    `                                                    json:"avatar"`
-	Gender      string    `                                                    json:"gender"`
+	Gender      int8      `                                                    json:"gender"`
 	UID         int       `gorm:"unique;not null;default:100000;autoIncrement" json:"uid"`
 	CreatedAt   time.Time `gorm:"default:NOW();not null"                       json:"created_at,omitempty"`
 	UpdatedAt   time.Time `gorm:"default:NOW();not null"                       json:"updated_at,omitempty"`
