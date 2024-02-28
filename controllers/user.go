@@ -48,8 +48,8 @@ func (user User) GetUser(c *gin.Context) {
 		return
 	}
 
-	u := &BasicInfo{}
-	res := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
+	u := &models.User{}
+	res := user.Db.Model(u).Find(u, "email = ?", userInfo.Email)
 	if res.Error != nil {
 		resp.Status = "error"
 		resp.Message = res.Error.Error()
@@ -63,6 +63,7 @@ func (user User) GetUser(c *gin.Context) {
 		return
 	}
 
+	u.Password = ""
 	resp.Status = "ok"
 	resp.Data = u
 	c.JSON(http.StatusOK, resp)
