@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +32,6 @@ func TestRoot(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	mock := db.NewMockDB()
-
 	router := InitRouter()
 
 	var w *httptest.ResponseRecorder
@@ -60,4 +60,35 @@ func TestGetUser(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/v1/user/?email=i@rua.plus", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 204, w.Code)
+}
+
+func TestRegister(t *testing.T) {
+	mock := db.NewMockDB()
+	router := InitRouter()
+
+	var w *httptest.ResponseRecorder
+	var req *http.Request
+
+	// invalid request
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/v1/register/", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 400, w.Code)
+
+	var rows *sqlmock.Rows
+	rows = sqlmock.NewRows([]string{"id", "username", "email"}).
+		AddRow(1, "xfy", "i@rua.plus")
+	mock.ExpectQuery("^*$").WillReturnRows(rows)
+
+	var body []byte
+	// user already exist
+	body = []byte(`{"username": "xfy", "email": "i@rua.plus", "password": "passwd"}`)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest(
+		"POST",
+		"/v1/register/",
+		bytes.NewBuffer(body),
+	)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 409, w.Code)
 }
