@@ -13,6 +13,7 @@ func InitRouter() *gin.Engine {
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(middlewares.CORSMiddleware())
 
 	v1 := router.Group("/v1")
 

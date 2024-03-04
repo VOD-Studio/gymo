@@ -63,9 +63,11 @@ func (user User) GetUser(c *gin.Context) {
 
 // 用户注册
 type UserJson struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Email    string `json:"email"    binding:"required"`
+	Username    string `json:"username"    binding:"required"`
+	Password    string `json:"password"    binding:"required"`
+	Email       string `json:"email"       binding:"required"`
+	Description string `json:"description"`
+	Gender      int8   `json:"gender"`
 }
 
 // 添加用户
@@ -83,9 +85,11 @@ func (user User) AddUser(c *gin.Context) {
 	}
 
 	u := &models.User{
-		Username: userInfo.Username,
-		Password: userInfo.Password,
-		Email:    userInfo.Email,
+		Username:    userInfo.Username,
+		Password:    userInfo.Password,
+		Email:       userInfo.Email,
+		Description: userInfo.Description,
+		Gender:      userInfo.Gender,
 	}
 
 	res := user.Db.Model(u).Where("email = ?", u.Email).FirstOrCreate(&u)
