@@ -122,15 +122,7 @@ func (user User) ModifyUser(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
 
-	var u *models.User
-	current, ok := c.Get("user")
-	if !ok {
-		resp.Status = "error"
-		resp.Message = "parse token failed"
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-	u = current.(*models.User)
+	u := utils.GetContextUser(c, resp)
 
 	userInfo := &UserModify{}
 	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {

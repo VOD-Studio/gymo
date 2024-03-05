@@ -21,6 +21,7 @@ func InitRouter() *gin.Engine {
 	root := controllers.RootController{}
 	v1.GET("/", root.Root)
 
+	// user
 	user := controllers.User{
 		Db: db.Db,
 	}
@@ -32,6 +33,12 @@ func InitRouter() *gin.Engine {
 	v1.PATCH("/user", user.ModifyUser) // modify user infomation
 	v1.POST("/user", user.UserSelf)    // get current logged in user infomation
 	v1.DELETE("/user", user.Delete)    // cancel this account
+
+	// contacts
+	contacts := controllers.Contacts{
+		Db: db.Db,
+	}
+	v1.POST("/make_firend", contacts.MakeFirend)
 
 	return router
 }
