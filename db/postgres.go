@@ -46,6 +46,10 @@ func MigrateDb() {
 		log.Println(err)
 		return
 	}
+	if err := Db.AutoMigrate(&models.Contact{}); err != nil {
+		log.Println(err)
+		return
+	}
 }
 
 func NewMockDB() sqlmock.Sqlmock {

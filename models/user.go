@@ -37,6 +37,8 @@ type User struct {
 	CreatedAt   time.Time `gorm:"default:NOW();not null"         json:"created_at,omitempty"`
 	UpdatedAt   time.Time `gorm:"default:NOW();not null"         json:"updated_at,omitempty"`
 	LastLogin   int64     `                                      json:"last_login,omitempty"`
+	Contacts    []Contact `gorm:"ForeignKey:Uid"`
+	Onlie       bool
 }
 
 func (u *User) GetSingle(username string, db *gorm.DB) error {
