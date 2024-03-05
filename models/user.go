@@ -25,6 +25,13 @@ func (g Gender) String() string {
 	return "unknown"
 }
 
+type Contact struct {
+	ID      uint `gorm:"primaryKey"     json:"id,omitempty"`
+	Firend  uint // 好友的 UID
+	UserUID uint // 自身的 UID
+	User    User `gorm:"references:UID"`
+}
+
 type User struct {
 	ID          uint      `gorm:"primaryKey"                     json:"id,omitempty"`
 	Email       string    `gorm:"unique;not null"                json:"email"`
@@ -33,11 +40,10 @@ type User struct {
 	Description string    `                                      json:"description"`
 	Avatar      string    `                                      json:"avatar"`
 	Gender      int8      `                                      json:"gender"`
-	UID         int       `gorm:"unique;not null;default:100000" json:"uid"`
+	UID         uint      `gorm:"unique;not null;default:100000" json:"uid"`
 	CreatedAt   time.Time `gorm:"default:NOW();not null"         json:"created_at,omitempty"`
 	UpdatedAt   time.Time `gorm:"default:NOW();not null"         json:"updated_at,omitempty"`
 	LastLogin   int64     `                                      json:"last_login,omitempty"`
-	Contacts    []Contact `gorm:"ForeignKey:Uid"`
 	Onlie       bool
 }
 
