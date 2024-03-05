@@ -52,7 +52,7 @@ func (user User) GetUser(c *gin.Context) {
 	if res.RowsAffected == 0 {
 		resp.Status = "error"
 		resp.Message = "user not exist"
-		c.JSON(http.StatusNoContent, resp)
+		c.JSON(http.StatusUnprocessableEntity, resp)
 		return
 	}
 
