@@ -12,6 +12,7 @@ type Gender int
 const (
 	Male Gender = iota
 	Female
+	Secret
 )
 
 func (g Gender) String() string {

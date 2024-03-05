@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"gorm.io/gorm"
 
 	"rua.plus/gymo/models"
@@ -18,7 +19,7 @@ type User struct {
 
 // 查询用户
 type UserQuery struct {
-	Email string `form:"email" binding:"required"`
+	Email string `form:"email" binding:"required,email"`
 }
 
 // 通过 email 查询用户
@@ -28,7 +29,7 @@ func (user User) GetUser(c *gin.Context) {
 	resp := &utils.BasicRes{}
 
 	var userInfo UserQuery
-	if err := c.ShouldBindQuery(&userInfo); err != nil {
+	if err := c.ShouldBindWith(&userInfo, binding.Query); err != nil {
 		resp.Status = "error"
 		resp.Message = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
@@ -65,7 +66,7 @@ func (user User) GetUser(c *gin.Context) {
 type UserJson struct {
 	Username    string `json:"username"    binding:"required"`
 	Password    string `json:"password"    binding:"required"`
-	Email       string `json:"email"       binding:"required"`
+	Email       string `json:"email"       binding:"required,email"`
 	Description string `json:"description"`
 	Gender      int8   `json:"gender"`
 }
@@ -77,7 +78,7 @@ func (user User) AddUser(c *gin.Context) {
 	resp := &utils.BasicRes{}
 
 	var userInfo UserJson
-	if err := c.ShouldBindJSON(&userInfo); err != nil {
+	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
 		resp.Status = "error"
 		resp.Message = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
@@ -114,7 +115,7 @@ func (user User) AddUser(c *gin.Context) {
 type UserModify struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Email    string `json:"email"`
+	Email    string `json:"email"    binding:"email"`
 }
 
 func (user User) ModifyUser(c *gin.Context) {
@@ -132,7 +133,7 @@ func (user User) ModifyUser(c *gin.Context) {
 	u = current.(*models.User)
 
 	userInfo := &UserModify{}
-	if err := c.ShouldBindJSON(&userInfo); err != nil {
+	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
 		resp.Status = "error"
 		resp.Message = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
@@ -165,7 +166,7 @@ func (user User) ModifyUser(c *gin.Context) {
 
 // 用户登录 json
 type UserLogin struct {
-	Email    string `json:"email"    binding:"required"`
+	Email    string `json:"email"    binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
 type LoginResponse struct {
@@ -180,7 +181,7 @@ func (user User) Login(c *gin.Context) {
 	resp := &utils.BasicRes{}
 
 	var userInfo UserLogin
-	if err := c.ShouldBindJSON(&userInfo); err != nil {
+	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
 		resp.Status = "error"
 		resp.Message = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
