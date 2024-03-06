@@ -37,10 +37,11 @@ type FirendRequest struct {
 
 // 好友表
 type Contact struct {
-	ID      uint `gorm:"primaryKey"     json:"id,omitempty"`
-	Firend  uint // 好友的 UID
-	UserUID uint // 自身的 UID
-	User    User `gorm:"references:UID"`
+	ID        uint `gorm:"primaryKey"     json:"id,omitempty"`
+	FirendUID uint // 好友的 UID
+	UserUID   uint // 自身的 UID
+	User      User `gorm:"references:UID"`
+	Firend    User
 }
 
 // 用户表
