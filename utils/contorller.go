@@ -14,15 +14,21 @@ type BasicRes struct {
 	Data    any    `json:"data,omitempty"`
 }
 
+// 从 gin 上下文中获取当前登录的用户
 func GetContextUser(c *gin.Context, resp *BasicRes) *models.User {
 	var u *models.User
 	current, ok := c.Get("user")
 	if !ok {
-		resp.Status = "error"
-		resp.Message = "parse token failed"
-		c.JSON(http.StatusInternalServerError, resp)
+		FailedAndReturn(c, resp, http.StatusInternalServerError, "parse token failed")
 		return nil
 	}
 	u = current.(*models.User)
 	return u
+}
+
+// 格式化失败响应，并通过 `c.JSON` 返回
+func FailedAndReturn(c *gin.Context, resp *BasicRes, code int, message string) {
+	resp.Status = "error"
+	resp.Message = message
+	c.JSON(code, resp)
 }

@@ -32,17 +32,18 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 
 	var info MakeFirendJson
 	if err := c.ShouldBindWith(&info, binding.JSON); err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// check is self
 	if info.Uid == u.UID {
-		resp.Status = "error"
-		resp.Message = "cannot make firend with self"
-		c.JSON(http.StatusUnprocessableEntity, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"cannot make firend with self",
+		)
 		return
 	}
 
@@ -50,15 +51,21 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	firend := &models.User{}
 	dbRes := contacts.Db.Model(firend).Find(firend, "uid = ?", info.Uid)
 	if dbRes.Error != nil {
-		resp.Status = "error"
-		resp.Message = dbRes.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
 		return
 	}
 	if dbRes.RowsAffected == 0 {
-		resp.Status = "error"
-		resp.Message = "target user not exist"
-		c.JSON(http.StatusUnprocessableEntity, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"target user not exist",
+		)
 		return
 	}
 
@@ -67,15 +74,21 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	dbRes = contacts.Db.Model(contact).
 		Find(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
-		resp.Status = "error"
-		resp.Message = dbRes.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
 		return
 	}
 	if dbRes.RowsAffected != 0 {
-		resp.Status = "error"
-		resp.Message = "target user is already firend"
-		c.JSON(http.StatusUnprocessableEntity, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"target user is already firend",
+		)
 		return
 	}
 
@@ -84,15 +97,21 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	dbRes = contacts.Db.Model(firendReq).
 		Find(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
-		resp.Status = "error"
-		resp.Message = dbRes.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
 		return
 	}
 	if dbRes.RowsAffected != 0 {
-		resp.Status = "error"
-		resp.Message = fmt.Sprintf("already sent a request to user %d", firend.UID)
-		c.JSON(http.StatusUnprocessableEntity, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			fmt.Sprintf("already sent a request to user %d", firend.UID),
+		)
 		return
 	}
 	firendReq.FromUserUID = u.UID
