@@ -25,6 +25,17 @@ func (g Gender) String() string {
 	return "unknown"
 }
 
+// 发送的好友请求
+type FirendRequest struct {
+	ID          uint `gorm:"primaryKey"     json:"id,omitempty"`
+	FromUserUID uint // 好友的 UID
+	ToUserUID   uint // 自身的 UID
+	FromUser    User `gorm:"references:UID"`
+	ToUser      User `gorm:"references:UID"`
+	Accept      bool
+}
+
+// 好友表
 type Contact struct {
 	ID      uint `gorm:"primaryKey"     json:"id,omitempty"`
 	Firend  uint // 好友的 UID
@@ -32,6 +43,7 @@ type Contact struct {
 	User    User `gorm:"references:UID"`
 }
 
+// 用户表
 type User struct {
 	ID          uint      `gorm:"primaryKey"                     json:"id,omitempty"`
 	Email       string    `gorm:"unique;not null"                json:"email"`
@@ -45,10 +57,6 @@ type User struct {
 	UpdatedAt   time.Time `gorm:"default:NOW();not null"         json:"updated_at,omitempty"`
 	LastLogin   int64     `                                      json:"last_login,omitempty"`
 	Onlie       bool
-}
-
-func (u *User) GetSingle(username string, db *gorm.DB) error {
-	return db.Where("username = ?", username).First(u).Error
 }
 
 func (u *User) HashPassword() (err error) {
