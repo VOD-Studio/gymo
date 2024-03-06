@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,10 @@ type MakeFirendJson struct {
 	Uid uint `json:"uid" binding:"required"`
 }
 
+// 向指定的用户发送好友请求
+// 发送后将保存到 `firend_request` 表中
+// 同时向对方发送通知
+// TODO: 给对方用户发送通知
 func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
@@ -59,7 +64,8 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 
 	// check is already in contect
 	contact := &models.Contact{}
-	dbRes = contacts.Db.Model(contact).Find(contact, "user_uid = ? AND firend = ?", u.UID, info.Uid)
+	dbRes = contacts.Db.Model(contact).
+		Find(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
 		resp.Status = "error"
 		resp.Message = dbRes.Error.Error()
@@ -107,4 +113,12 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	resp.Status = "ok"
 	resp.Message = ""
 	c.JSON(http.StatusOK, resp)
+}
+
+func (contacts Contacts) CheckRequest(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	log.Println(u)
 }
