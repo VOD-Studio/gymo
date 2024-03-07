@@ -37,7 +37,7 @@ func TestGetUser(t *testing.T) {
 	var w *httptest.ResponseRecorder
 	var req *http.Request
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/v1/user/", nil)
+	req, _ = http.NewRequest("GET", "/v1/user", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
 
@@ -48,7 +48,7 @@ func TestGetUser(t *testing.T) {
 
 	// user found
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/v1/user/?email=i@rua.plus", nil)
+	req, _ = http.NewRequest("GET", "/v1/user?email=i@rua.plus", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
 
@@ -57,9 +57,9 @@ func TestGetUser(t *testing.T) {
 
 	// user not found
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/v1/user/?email=i@rua.plus", nil)
+	req, _ = http.NewRequest("GET", "/v1/user?email=i@rua.plus", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 204, w.Code)
+	assert.Equal(t, 422, w.Code)
 }
 
 func TestRegister(t *testing.T) {
@@ -71,7 +71,7 @@ func TestRegister(t *testing.T) {
 
 	// invalid request
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("POST", "/v1/register/", nil)
+	req, _ = http.NewRequest("POST", "/v1/register", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 400, w.Code)
 
@@ -86,7 +86,7 @@ func TestRegister(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(
 		"POST",
-		"/v1/register/",
+		"/v1/register",
 		bytes.NewBuffer(body),
 	)
 	router.ServeHTTP(w, req)
