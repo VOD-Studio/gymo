@@ -11,6 +11,6 @@ insert_final_newline = true
 [Makefile]
 indent_style = tab
 
-[*.yaml]
+[{*.yaml,*.yml}]
 indent_style = tab
 indent_size = 2

@@ -4,7 +4,7 @@ VERSION=0.0.1
 .PHONY: build
 ## build: Compile the packages.
 build:
-	@go build -buildvcs=false -o $(NAME)
+	@go build -v -o $(NAME)
 
 .PHONY: run
 ## run: Build and Run in development mode.
@@ -29,8 +29,7 @@ deps:
 .PHONY: test
 ## test: Run tests with verbose mode
 test:
-	# @go test -v ./tests/*
-	@go test ./...
+	@go test -v ./...
 
 .PHONY: help
 all: help
