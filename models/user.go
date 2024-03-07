@@ -25,46 +25,44 @@ func (g Gender) String() string {
 	return "unknown"
 }
 
-// 发送的好友请求
-type FirendRequest struct {
-	ID          uint `gorm:"primaryKey"             json:"id,omitempty"`
-	FromUserUID uint // 好友的 UID
-	ToUserUID   uint // 自身的 UID
-	FromUser    User `gorm:"references:UID"`
-	ToUser      User `gorm:"references:UID"`
-	Accept      bool
-	CreatedAt   time.Time      `gorm:"default:NOW();not null" json:"created_at,omitempty"`
-	UpdatedAt   time.Time      `gorm:"default:NOW();not null" json:"updated_at,omitempty"`
-	DeletedAt   gorm.DeletedAt `gorm:"index"                  json:"-"`
-}
-
-// 好友表
-type Contact struct {
+type BaseID struct {
 	ID        uint           `gorm:"primaryKey"             json:"id,omitempty"`
-	FirendUID uint           // 好友的 UID
-	UserUID   uint           // 自身的 UID
-	User      User           `gorm:"references:UID"`
-	Firend    User           `gorm:"references:UID"`
 	CreatedAt time.Time      `gorm:"default:NOW();not null" json:"created_at,omitempty"`
 	UpdatedAt time.Time      `gorm:"default:NOW();not null" json:"updated_at,omitempty"`
 	DeletedAt gorm.DeletedAt `gorm:"index"                  json:"-"`
 }
 
+// 发送的好友请求
+type FirendRequest struct {
+	BaseID
+	FromUserUID uint // 好友的 UID
+	ToUserUID   uint // 自身的 UID
+	FromUser    User `gorm:"references:UID"`
+	ToUser      User `gorm:"references:UID"`
+	Accept      bool
+}
+
+// 好友表
+type Contact struct {
+	BaseID
+	FirendUID uint // 好友的 UID
+	UserUID   uint // 自身的 UID
+	User      User `gorm:"references:UID"`
+	Firend    User `gorm:"references:UID"`
+}
+
 // 用户表
 type User struct {
-	ID          uint           `gorm:"primaryKey"                     json:"id,omitempty"`
-	Email       string         `gorm:"unique;not null"                json:"email"`
-	Username    string         `gorm:"not null"                       json:"username"`
-	Password    string         `gorm:"not null"                       json:"-"`
-	Description string         `                                      json:"description"`
-	Avatar      string         `                                      json:"avatar"`
-	Gender      int8           `                                      json:"gender"`
-	UID         uint           `gorm:"unique;not null;default:100000" json:"uid"`
-	CreatedAt   time.Time      `gorm:"default:NOW();not null"         json:"created_at,omitempty"`
-	UpdatedAt   time.Time      `gorm:"default:NOW();not null"         json:"updated_at,omitempty"`
-	DeletedAt   gorm.DeletedAt `gorm:"index"                          json:"-"`
-	LastLogin   int64          `                                      json:"last_login,omitempty"`
-	Onlie       bool           `                                      json:"online"`
+	BaseID
+	Email       string `gorm:"not null"                       json:"email"`
+	Username    string `gorm:"not null"                       json:"username"`
+	Password    string `gorm:"not null"                       json:"-"`
+	Description string `                                      json:"description"`
+	Avatar      string `                                      json:"avatar"`
+	Gender      int8   `                                      json:"gender"`
+	UID         uint   `gorm:"unique;not null;default:100000" json:"uid"`
+	LastLogin   int64  `                                      json:"last_login,omitempty"`
+	Onlie       bool   `                                      json:"online"`
 }
 
 func (u *User) HashPassword() (err error) {
@@ -78,7 +76,7 @@ func (u *User) HashPassword() (err error) {
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	user := &User{}
-	tx.Model(&User{}).Order("uid desc").First(user, "")
+	tx.Model(&User{}).Unscoped().Order("uid desc").First(user, "")
 	if user.UID > 0 {
 		u.UID = user.UID + 1
 	}

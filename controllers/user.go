@@ -249,7 +249,6 @@ func (user User) Login(c *gin.Context) {
 func (user User) UserSelf(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
-
 	u := utils.GetContextUser(c, resp)
 
 	resp.Status = "ok"
@@ -262,7 +261,6 @@ func (user User) UserSelf(c *gin.Context) {
 func (user User) Delete(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
-
 	u := utils.GetContextUser(c, resp)
 
 	res := user.Db.Model(&models.User{}).Delete(u, "email = ?", u.Email)
