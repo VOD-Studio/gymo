@@ -64,7 +64,7 @@ type User struct {
 	UpdatedAt   time.Time      `gorm:"default:NOW();not null"         json:"updated_at,omitempty"`
 	DeletedAt   gorm.DeletedAt `gorm:"index"                          json:"-"`
 	LastLogin   int64          `                                      json:"last_login,omitempty"`
-	Onlie       bool
+	Onlie       bool           `                                      json:"online"`
 }
 
 func (u *User) HashPassword() (err error) {
