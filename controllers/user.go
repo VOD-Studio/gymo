@@ -30,30 +30,33 @@ func (user User) GetUser(c *gin.Context) {
 
 	var userInfo UserQuery
 	if err := c.ShouldBindWith(&userInfo, binding.Query); err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-	if userInfo.Email == "" {
-		resp.Status = "error"
-		resp.Message = "email is empty"
-		c.JSON(http.StatusBadRequest, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusBadRequest,
+			err.Error(),
+		)
 		return
 	}
 
 	u := &models.User{}
 	res := user.Db.Model(u).Find(u, "email = ?", userInfo.Email)
 	if res.Error != nil {
-		resp.Status = "error"
-		resp.Message = res.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			res.Error.Error(),
+		)
 		return
 	}
 	if res.RowsAffected == 0 {
-		resp.Status = "error"
-		resp.Message = "user not exist"
-		c.JSON(http.StatusUnprocessableEntity, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"user not exist",
+		)
 		return
 	}
 
@@ -79,9 +82,7 @@ func (user User) AddUser(c *gin.Context) {
 
 	var userInfo UserJson
 	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -95,15 +96,21 @@ func (user User) AddUser(c *gin.Context) {
 
 	res := user.Db.Model(u).Where("email = ?", u.Email).FirstOrCreate(&u)
 	if res.Error != nil {
-		resp.Status = "error"
-		resp.Message = res.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			res.Error.Error(),
+		)
 		return
 	}
 	if res.RowsAffected == 0 {
-		resp.Status = "error"
-		resp.Message = "user already exist"
-		c.JSON(http.StatusConflict, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusConflict,
+			"user already exist",
+		)
 		return
 	}
 
@@ -126,9 +133,7 @@ func (user User) ModifyUser(c *gin.Context) {
 
 	userInfo := &UserModify{}
 	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
 		return
 	}
 	if userInfo.Username != "" {
@@ -144,9 +149,12 @@ func (user User) ModifyUser(c *gin.Context) {
 
 	res := user.Db.Save(u)
 	if res.Error != nil {
-		resp.Status = "error"
-		resp.Message = res.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			res.Error.Error(),
+		)
 		return
 	}
 
@@ -174,33 +182,40 @@ func (user User) Login(c *gin.Context) {
 
 	var userInfo UserLogin
 	if err := c.ShouldBindWith(&userInfo, binding.JSON); err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// query the user
 	u := &models.User{}
-	dbResult := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
-	if dbResult.Error != nil {
-		resp.Status = "error"
-		resp.Message = dbResult.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+	dbRes := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
 		return
 	}
-	if dbResult.RowsAffected == 0 {
-		resp.Status = "error"
-		resp.Message = "user not exist"
-		c.JSON(http.StatusNoContent, resp)
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"user not exist",
+		)
 		return
 	}
 
 	// check the password
 	if err := models.CheckPasswordHash(userInfo.Password, u.Password); err != nil {
-		resp.Status = "error"
-		resp.Message = "password not correct"
-		c.JSON(http.StatusUnauthorized, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnauthorized,
+			"password not correct",
+		)
 		return
 	}
 
@@ -208,9 +223,12 @@ func (user User) Login(c *gin.Context) {
 	lastLogin := time.Now().Unix()
 	token, err := utils.GenerateToken(int(u.ID), lastLogin)
 	if err != nil {
-		resp.Status = "error"
-		resp.Message = err.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			err.Error(),
+		)
 		return
 	}
 
@@ -232,15 +250,7 @@ func (user User) UserSelf(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
 
-	var u *models.User
-	current, ok := c.Get("user")
-	if !ok {
-		resp.Status = "error"
-		resp.Message = "parse token failed"
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-	u = current.(*models.User)
+	u := utils.GetContextUser(c, resp)
 
 	resp.Status = "ok"
 	resp.Data = u
@@ -253,21 +263,16 @@ func (user User) Delete(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
 
-	var u *models.User
-	current, ok := c.Get("user")
-	if !ok {
-		resp.Status = "error"
-		resp.Message = "parse token failed"
-		c.JSON(http.StatusInternalServerError, resp)
-		return
-	}
-	u = current.(*models.User)
+	u := utils.GetContextUser(c, resp)
 
 	res := user.Db.Model(&models.User{}).Delete(u, "email = ?", u.Email)
 	if res.Error != nil {
-		resp.Status = "error"
-		resp.Message = res.Error.Error()
-		c.JSON(http.StatusInternalServerError, resp)
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			res.Error.Error(),
+		)
 		return
 	}
 	msg := fmt.Sprintf("account %s has been deleted", u.Email)

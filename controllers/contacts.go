@@ -86,7 +86,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		utils.FailedAndReturn(
 			c,
 			resp,
-			http.StatusUnprocessableEntity,
+			http.StatusConflict,
 			"target user is already firend",
 		)
 		return
@@ -109,7 +109,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		utils.FailedAndReturn(
 			c,
 			resp,
-			http.StatusUnprocessableEntity,
+			http.StatusConflict,
 			fmt.Sprintf("already sent a request to user %d", firend.UID),
 		)
 		return
