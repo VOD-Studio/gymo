@@ -28,17 +28,27 @@ func InitRouter() *gin.Engine {
 	v1.GET("/user", user.GetUser)      // query single user by query
 	v1.POST("/register", user.AddUser) // register account
 	v1.POST("/login", user.Login)      // login
-	v1.Use(middlewares.TokenAuth())
-	v1.Use(middlewares.TokenTimeAuth(db.Db))
-	v1.PATCH("/user", user.ModifyUser) // modify user infomation
-	v1.POST("/user", user.UserSelf)    // get current logged in user infomation
-	v1.DELETE("/user", user.Delete)    // cancel this account
 
-	// contacts
-	contacts := controllers.Contacts{
-		Db: db.Db,
+	// authorization
+	{
+		v1.Use(middlewares.TokenAuth())
+		v1.Use(middlewares.TokenTimeAuth(db.Db))
+		v1.PATCH("/user", user.ModifyUser) // modify user infomation
+		v1.POST("/user", user.UserSelf)    // get current logged in user infomation
+		v1.DELETE("/user", user.Delete)    // cancel this account
+
+		// contacts
+		contacts := controllers.Contacts{
+			Db: db.Db,
+		}
+		v1.POST("/make_firend", contacts.MakeFirend)
+
+		// websocket
+		ws := controllers.WS{
+			Db: db.Db,
+		}
+		v1.GET("/ws", ws.Connect)
 	}
-	v1.POST("/make_firend", contacts.MakeFirend)
 
 	return router
 }

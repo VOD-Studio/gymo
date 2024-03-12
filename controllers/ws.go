@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
+
+	"rua.plus/gymo/utils"
 )
 
 var upgrader = websocket.Upgrader{} // use default option
@@ -21,14 +23,23 @@ func (ws WS) Connect(c *gin.Context) {
 		log.Println("upgrade:", err)
 		return
 	}
+
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+	log.Println(u.Username)
+
 	defer ctx.Close()
 	for {
+		// message type:
+		// 1: text
+		// 2: binary
 		mt, message, err := ctx.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			return
 		}
-		log.Printf("recv: %s \n", message)
+		log.Printf("recv: %s message type %d \n", message, mt)
 		err = ctx.WriteMessage(mt, message)
 		if err != nil {
 			log.Println("write:", err)
