@@ -35,10 +35,10 @@ type BaseID struct {
 // 发送的好友请求
 type FirendRequest struct {
 	BaseID
-	FromUserUID uint // 好友的 UID
-	ToUserUID   uint // 自身的 UID
-	FromUser    User `gorm:"references:UID"`
-	ToUser      User `gorm:"references:UID"`
+	FromUserUID uint `json:"from_user_uid"` // 自身的 UID
+	ToUserUID   uint `json:"to_user_uid"`   // 好友的 UID
+	FromUser    User `json:"from_user"     gorm:"references:UID"`
+	ToUser      User `json:"to_user"       gorm:"references:UID"`
 	Accept      bool
 }
 

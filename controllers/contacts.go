@@ -151,13 +151,60 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 		)
 		return
 	}
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"firend list is empty",
+		)
+		return
+	}
 
 	resp.Status = "ok"
 	resp.Data = list
 	c.JSON(http.StatusOK, resp)
 }
 
+func (contacts Contacts) RequestList(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	var list = []models.FirendRequest{}
+	dbRes := contacts.Db.Find(&list, "to_user_uid = ?", u.UID)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"firend request is empty",
+		)
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Data = list
+	c.JSON(http.StatusOK, resp)
+}
+
+type CheckRequestInfo struct {
+	Accept bool `json:"accpet"`
+}
+
 func (contacts Contacts) CheckRequest(c *gin.Context) {
+	/* if c.Request.Method ==  */
+	log.Println(c.Request.Method)
+
 	// response
 	resp := &utils.BasicRes{}
 	u := utils.GetContextUser(c, resp)

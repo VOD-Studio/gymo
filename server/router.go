@@ -43,6 +43,7 @@ func InitRouter() *gin.Engine {
 		}
 		v1.POST("/make_firend", contacts.MakeFirend)
 		v1.GET("/firends", contacts.FirendList)
+		v1.GET("/firend_requests", contacts.RequestList)
 
 		// websocket
 		ws := controllers.WS{
