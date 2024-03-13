@@ -166,6 +166,7 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// 当前账户的好友请求列表
 func (contacts Contacts) RequestList(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
