@@ -40,7 +40,7 @@ func (user User) GetUser(c *gin.Context) {
 	}
 
 	u := &models.User{}
-	res := user.Db.Model(u).Find(u, "email = ?", userInfo.Email)
+	res := user.Db.Model(u).First(u, "email = ?", userInfo.Email)
 	if res.Error != nil {
 		utils.FailedAndReturn(
 			c,
@@ -188,7 +188,7 @@ func (user User) Login(c *gin.Context) {
 
 	// query the user
 	u := &models.User{}
-	dbRes := user.Db.Model(&models.User{}).Find(&u, "email = ?", userInfo.Email)
+	dbRes := user.Db.Model(&models.User{}).First(&u, "email = ?", userInfo.Email)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,

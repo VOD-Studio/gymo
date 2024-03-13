@@ -49,7 +49,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 
 	// find target user
 	firend := &models.User{}
-	dbRes := contacts.Db.Model(firend).Find(firend, "uid = ?", info.Uid)
+	dbRes := contacts.Db.Model(firend).First(firend, "uid = ?", info.Uid)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
@@ -72,7 +72,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// check is already in contect
 	contact := &models.Contact{}
 	dbRes = contacts.Db.Model(contact).
-		Find(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
+		First(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
@@ -95,7 +95,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// save to request
 	firendReq := &models.FirendRequest{}
 	dbRes = contacts.Db.Model(firendReq).
-		Find(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
+		First(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
@@ -131,6 +131,29 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 
 	resp.Status = "ok"
 	resp.Message = ""
+	c.JSON(http.StatusOK, resp)
+}
+
+// 获取当前账号的好友列表
+func (contacts Contacts) FirendList(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	var list = []models.Contact{}
+	dbRes := contacts.Db.Find(&list, "user_uid = ?", u.UID)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Data = list
 	c.JSON(http.StatusOK, resp)
 }
 

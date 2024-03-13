@@ -45,10 +45,10 @@ type FirendRequest struct {
 // 好友表
 type Contact struct {
 	BaseID
-	FirendUID uint // 好友的 UID
-	UserUID   uint // 自身的 UID
-	User      User `gorm:"references:UID"`
-	Firend    User `gorm:"references:UID"`
+	FirendUID uint `json:"firend_uid"` // 好友的 UID
+	UserUID   uint `json:"user_uid"`   // 自身的 UID
+	User      User `json:"user"       gorm:"references:UID"`
+	Firend    User `json:"firend"     gorm:"references:UID"`
 }
 
 // 用户表
