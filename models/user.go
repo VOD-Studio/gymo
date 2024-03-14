@@ -35,20 +35,20 @@ type BaseID struct {
 // 发送的好友请求
 type FirendRequest struct {
 	BaseID
-	FromUserUID uint `json:"from_user_uid"` // 自身的 UID
-	ToUserUID   uint `json:"to_user_uid"`   // 好友的 UID
-	FromUser    User `json:"from_user"     gorm:"references:UID"`
-	ToUser      User `json:"to_user"       gorm:"references:UID"`
-	Accept      bool
+	FromUserID uint `json:"from_user_uid"` // 自身的 UID
+	ToUserID   uint `json:"to_user_uid"`   // 好友的 UID
+	FromUser   User `json:"from_user"     gorm:"references:ID"`
+	ToUser     User `json:"to_user"       gorm:"references:ID"`
+	Accept     bool
 }
 
 // 好友表
 type Contact struct {
 	BaseID
-	FirendUID uint `json:"firend_uid"` // 好友的 UID
-	UserUID   uint `json:"user_uid"`   // 自身的 UID
-	User      User `json:"user"       gorm:"references:UID"`
-	Firend    User `json:"firend"     gorm:"references:UID"`
+	FirendID uint `json:"firend_uid"` // 好友的 UID
+	UserID   uint `json:"user_uid"`   // 自身的 UID
+	User     User `json:"user"       gorm:"references:ID"`
+	Firend   User `json:"firend"     gorm:"references:ID"`
 }
 
 // 用户表

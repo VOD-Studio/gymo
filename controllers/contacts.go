@@ -73,7 +73,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// check is already in contect
 	contact := &models.Contact{}
 	dbRes = contacts.Db.Model(contact).
-		First(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
+		First(contact, "user_id = ? AND firend_id = ?", u.UID, info.Uid)
 	if dbRes.Error != nil && !errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 		utils.FailedAndReturn(
 			c,
@@ -96,7 +96,7 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// save to request
 	firendReq := &models.FirendRequest{}
 	dbRes = contacts.Db.Model(firendReq).
-		First(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
+		First(firendReq, "from_user_id = ? AND to_user_id = ?", u.ID, firend.ID)
 	if dbRes.Error != nil && !errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 		utils.FailedAndReturn(
 			c,
@@ -115,20 +115,20 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		)
 		return
 	}
-	firendReq.FromUserUID = u.UID
-	firendReq.ToUserUID = firend.UID
-	contacts.Db.Save(firendReq)
-
-	// save
-	/* contact.UserUID = u.UID */
-	/* contact.Firend = firend.UID */
-	/* dbRes = contacts.Db.Save(contact) */
-	/* if dbRes.Error != nil { */
-	/* 	resp.Status = "error" */
-	/* 	resp.Message = dbRes.Error.Error() */
-	/* 	c.JSON(http.StatusInternalServerError, resp) */
-	/* 	return */
-	/* } */
+	firendReq.FromUserID = u.ID
+	firendReq.ToUserID = firend.ID
+	firendReq.FromUser = *u
+	firendReq.ToUser = *firend
+	dbRes = contacts.Db.Save(firendReq)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
 
 	resp.Status = "ok"
 	resp.Message = ""
@@ -142,7 +142,9 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 	u := utils.GetContextUser(c, resp)
 
 	var list = []models.Contact{}
-	dbRes := contacts.Db.Find(&list, "user_uid = ?", u.UID)
+	dbRes := contacts.Db.Model(&models.Contact{}).
+		/* Association("User"). */
+		Find(&list, "user_uid = ?", u.UID)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
