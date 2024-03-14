@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -49,8 +50,17 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 
 	// find target user
 	firend := &models.User{}
-	dbRes := contacts.Db.Model(firend).Find(firend, "uid = ?", info.Uid)
+	dbRes := contacts.Db.Model(firend).First(firend, "uid = ?", info.Uid)
 	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"target user not exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
@@ -59,21 +69,12 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		)
 		return
 	}
-	if dbRes.RowsAffected == 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusUnprocessableEntity,
-			"target user not exist",
-		)
-		return
-	}
 
 	// check is already in contect
 	contact := &models.Contact{}
 	dbRes = contacts.Db.Model(contact).
-		Find(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
-	if dbRes.Error != nil {
+		First(contact, "user_id = ? AND firend_id = ?", u.UID, info.Uid)
+	if dbRes.Error != nil && !errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 		utils.FailedAndReturn(
 			c,
 			resp,
@@ -95,8 +96,8 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	// save to request
 	firendReq := &models.FirendRequest{}
 	dbRes = contacts.Db.Model(firendReq).
-		Find(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
-	if dbRes.Error != nil {
+		First(firendReq, "from_user_id = ? AND to_user_id = ?", u.ID, firend.ID)
+	if dbRes.Error != nil && !errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 		utils.FailedAndReturn(
 			c,
 			resp,
@@ -114,27 +115,99 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		)
 		return
 	}
-	firendReq.FromUserUID = u.UID
-	firendReq.ToUserUID = firend.UID
-	contacts.Db.Save(firendReq)
-
-	// save
-	/* contact.UserUID = u.UID */
-	/* contact.Firend = firend.UID */
-	/* dbRes = contacts.Db.Save(contact) */
-	/* if dbRes.Error != nil { */
-	/* 	resp.Status = "error" */
-	/* 	resp.Message = dbRes.Error.Error() */
-	/* 	c.JSON(http.StatusInternalServerError, resp) */
-	/* 	return */
-	/* } */
+	/* firendReq.FromUserID = u.ID */
+	/* firendReq.ToUserID = firend.ID */
+	firendReq.FromUser = *u
+	firendReq.ToUser = *firend
+	dbRes = contacts.Db.Save(firendReq)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
 
 	resp.Status = "ok"
 	resp.Message = ""
 	c.JSON(http.StatusOK, resp)
 }
 
+// 获取当前账号的好友列表
+func (contacts Contacts) FirendList(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	var list = []models.Contact{}
+	dbRes := contacts.Db.Model(&models.Contact{}).
+		Find(&list, "user_id = ?", u.ID)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"firend list is empty",
+		)
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Data = list
+	c.JSON(http.StatusOK, resp)
+}
+
+// 当前账户的好友请求列表
+func (contacts Contacts) RequestList(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	var list = []models.FirendRequest{}
+	dbRes := contacts.Db.Preload("FromUser").Preload("ToUser").Find(&list, "to_user_id = ?", u.ID)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"firend request is empty",
+		)
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Data = list
+	c.JSON(http.StatusOK, resp)
+}
+
+type CheckRequestInfo struct {
+	Accept bool `json:"accpet"`
+}
+
 func (contacts Contacts) CheckRequest(c *gin.Context) {
+	/* if c.Request.Method ==  */
+	log.Println(c.Request.Method)
+
 	// response
 	resp := &utils.BasicRes{}
 	u := utils.GetContextUser(c, resp)

@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
+
+	"github.com/joho/godotenv"
+
 	"rua.plus/gymo/db"
 	"rua.plus/gymo/server"
 )
@@ -14,5 +16,9 @@ func main() {
 	}
 
 	db.InitPostgres()
+	err = db.InitRedis()
+	if err != nil {
+		log.Fatalf("Cannot connect to redis %s\n", err)
+	}
 	server.InitServer()
 }
