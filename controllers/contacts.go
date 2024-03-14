@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -200,17 +199,74 @@ func (contacts Contacts) RequestList(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-type CheckRequestInfo struct {
-	Accept bool `json:"accpet"`
+type AcceptRequestInfo struct {
+	ID     uint `json:"id"     binding:"required"`
+	Accept bool `json:"accpet" binding:"required"`
 }
 
-func (contacts Contacts) CheckRequest(c *gin.Context) {
-	/* if c.Request.Method ==  */
-	log.Println(c.Request.Method)
-
+// 接受好友请求的相关信息
+func (contacts Contacts) AcceptRequest(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
-	u := utils.GetContextUser(c, resp)
+	/* u := utils.GetContextUser(c, resp) */
 
-	log.Println(u)
+	info := &AcceptRequestInfo{}
+	if err := c.ShouldBindWith(&info, binding.JSON); err != nil {
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// find target reqeust
+	firendReq := &models.FirendRequest{}
+	dbRes := contacts.Db.First(firendReq, "id = ?", info.ID)
+	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				fmt.Sprintf("firend request %d not exist", info.ID),
+			)
+			return
+		} else {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusInternalServerError,
+				dbRes.Error.Error(),
+			)
+			return
+		}
+	}
+
+	// check it's already responsed
+	if firendReq.Accepted != 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusBadRequest,
+			fmt.Sprintf("request %d already responsed", info.ID),
+		)
+		return
+	}
+
+	if info.Accept {
+		firendReq.Accepted = 1
+	} else {
+		firendReq.Accepted = 2
+	}
+	dbRes = contacts.Db.Save(firendReq)
+	if dbRes.Error != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Message = "accepted"
+	c.JSON(http.StatusOK, resp)
 }

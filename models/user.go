@@ -39,7 +39,7 @@ type FirendRequest struct {
 	ToUserID   uint `json:"to_user_id"`    // 好友的 UID
 	FromUser   User `json:"from_user"     gorm:"foreignKey:FromUserID"`
 	ToUser     User `json:"to_user"       gorm:"foreignKey:ToUserID"`
-	Accept     bool
+	Accepted   uint `json:"accepted"` // 0 初始状态 1 接受 2 拒绝
 }
 
 // 好友表
