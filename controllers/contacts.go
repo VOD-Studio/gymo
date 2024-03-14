@@ -208,7 +208,7 @@ type AcceptRequestInfo struct {
 func (contacts Contacts) AcceptRequest(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
-	/* u := utils.GetContextUser(c, resp) */
+	u := utils.GetContextUser(c, resp)
 
 	info := &AcceptRequestInfo{}
 	if err := c.ShouldBindWith(&info, binding.JSON); err != nil {
@@ -218,7 +218,7 @@ func (contacts Contacts) AcceptRequest(c *gin.Context) {
 
 	// find target reqeust
 	firendReq := &models.FirendRequest{}
-	dbRes := contacts.Db.First(firendReq, "id = ?", info.ID)
+	dbRes := contacts.Db.First(firendReq, "id = ? AND to_user_id = ?", info.ID, u.ID)
 	if dbRes.Error != nil {
 		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 			utils.FailedAndReturn(
