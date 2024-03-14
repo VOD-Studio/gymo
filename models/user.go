@@ -36,19 +36,19 @@ type BaseID struct {
 type FirendRequest struct {
 	BaseID
 	FromUserID uint `json:"from_user_uid"` // 自身的 UID
-	ToUserID   uint `json:"to_user_uid"`   // 好友的 UID
-	FromUser   User `json:"from_user"     gorm:"references:ID"`
-	ToUser     User `json:"to_user"       gorm:"references:ID"`
+	ToUserID   uint `json:"to_user_id"`    // 好友的 UID
+	FromUser   User `json:"from_user"     gorm:"foreignKey:FromUserID"`
+	ToUser     User `json:"to_user"       gorm:"foreignKey:ToUserID"`
 	Accept     bool
 }
 
 // 好友表
 type Contact struct {
 	BaseID
-	FirendID uint `json:"firend_uid"` // 好友的 UID
-	UserID   uint `json:"user_uid"`   // 自身的 UID
-	User     User `json:"user"       gorm:"references:ID"`
-	Firend   User `json:"firend"     gorm:"references:ID"`
+	FirendID uint `json:"firend_id"` // 好友的 UID
+	UserID   uint `json:"user_id"`   // 自身的 UID
+	User     User `json:"user"      gorm:"foreingKey:UserID"`
+	Firend   User `json:"firend"    gorm:"foreingKey:FirendID"`
 }
 
 // 用户表

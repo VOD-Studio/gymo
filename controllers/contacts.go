@@ -115,8 +115,8 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 		)
 		return
 	}
-	firendReq.FromUserID = u.ID
-	firendReq.ToUserID = firend.ID
+	/* firendReq.FromUserID = u.ID */
+	/* firendReq.ToUserID = firend.ID */
 	firendReq.FromUser = *u
 	firendReq.ToUser = *firend
 	dbRes = contacts.Db.Save(firendReq)
@@ -143,8 +143,7 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 
 	var list = []models.Contact{}
 	dbRes := contacts.Db.Model(&models.Contact{}).
-		/* Association("User"). */
-		Find(&list, "user_uid = ?", u.UID)
+		Find(&list, "user_id = ?", u.ID)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
@@ -176,7 +175,7 @@ func (contacts Contacts) RequestList(c *gin.Context) {
 	u := utils.GetContextUser(c, resp)
 
 	var list = []models.FirendRequest{}
-	dbRes := contacts.Db.Find(&list, "to_user_uid = ?", u.UID)
+	dbRes := contacts.Db.Preload("FromUser").Preload("ToUser").Find(&list, "to_user_id = ?", u.ID)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
