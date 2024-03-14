@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -51,20 +52,20 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	firend := &models.User{}
 	dbRes := contacts.Db.Model(firend).First(firend, "uid = ?", info.Uid)
 	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"target user not exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
 			dbRes.Error.Error(),
-		)
-		return
-	}
-	if dbRes.RowsAffected == 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusUnprocessableEntity,
-			"target user not exist",
 		)
 		return
 	}
@@ -74,20 +75,20 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	dbRes = contacts.Db.Model(contact).
 		First(contact, "user_uid = ? AND firend_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"target user not exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
 			dbRes.Error.Error(),
-		)
-		return
-	}
-	if dbRes.RowsAffected != 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusConflict,
-			"target user is already firend",
 		)
 		return
 	}
@@ -97,20 +98,20 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	dbRes = contacts.Db.Model(firendReq).
 		First(firendReq, "from_user_uid = ? AND to_user_uid = ?", u.UID, info.Uid)
 	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusConflict,
+				fmt.Sprintf("already sent a request to user %d", firend.UID),
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
 			dbRes.Error.Error(),
-		)
-		return
-	}
-	if dbRes.RowsAffected != 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusConflict,
-			fmt.Sprintf("already sent a request to user %d", firend.UID),
 		)
 		return
 	}

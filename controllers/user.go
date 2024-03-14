@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -40,22 +41,22 @@ func (user User) GetUser(c *gin.Context) {
 	}
 
 	u := &models.User{}
-	res := user.Db.Model(u).First(u, "email = ?", userInfo.Email)
-	if res.Error != nil {
+	dbRes := user.Db.Model(u).First(u, "email = ?", userInfo.Email)
+	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"user not exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
-			res.Error.Error(),
-		)
-		return
-	}
-	if res.RowsAffected == 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusUnprocessableEntity,
-			"user not exist",
+			dbRes.Error.Error(),
 		)
 		return
 	}
@@ -94,22 +95,22 @@ func (user User) AddUser(c *gin.Context) {
 		Gender:      userInfo.Gender,
 	}
 
-	res := user.Db.Model(u).Where("email = ?", u.Email).FirstOrCreate(&u)
-	if res.Error != nil {
+	dbRes := user.Db.Model(u).Where("email = ?", u.Email).FirstOrCreate(&u)
+	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusConflict,
+				"user already exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
-			res.Error.Error(),
-		)
-		return
-	}
-	if res.RowsAffected == 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusConflict,
-			"user already exist",
+			dbRes.Error.Error(),
 		)
 		return
 	}
@@ -190,20 +191,20 @@ func (user User) Login(c *gin.Context) {
 	u := &models.User{}
 	dbRes := user.Db.Model(&models.User{}).First(&u, "email = ?", userInfo.Email)
 	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"user not exist",
+			)
+			return
+		}
 		utils.FailedAndReturn(
 			c,
 			resp,
 			http.StatusInternalServerError,
 			dbRes.Error.Error(),
-		)
-		return
-	}
-	if dbRes.RowsAffected == 0 {
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusUnprocessableEntity,
-			"user not exist",
 		)
 		return
 	}
