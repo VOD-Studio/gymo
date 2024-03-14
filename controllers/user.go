@@ -114,6 +114,15 @@ func (user User) AddUser(c *gin.Context) {
 		)
 		return
 	}
+	if dbRes.RowsAffected == 0 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusConflict,
+			"user already exist",
+		)
+		return
+	}
 
 	resp.Status = "ok"
 	resp.Data = u
