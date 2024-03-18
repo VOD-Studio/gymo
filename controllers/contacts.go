@@ -167,14 +167,38 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+type RequestListInfo struct {
+	// 是否是自己收到的好友请求
+	Received bool `form:"received"`
+}
+
 // 当前账户的好友请求列表
 func (contacts Contacts) RequestList(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
 	u := utils.GetContextUser(c, resp)
 
+	var info RequestListInfo
+	if err := c.ShouldBindWith(&info, binding.Query); err != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusBadRequest,
+			err.Error(),
+		)
+		return
+	}
+
 	var list = []models.FirendRequest{}
-	dbRes := contacts.Db.Preload("FromUser").Preload("ToUser").Find(&list, "to_user_id = ?", u.ID)
+	var condition string
+	if info.Received {
+		// 是自身收到的好友请求，则 to_user_id 为自身 ID
+		condition = "to_user_id = ?"
+	} else {
+		// 否则 from_user_id 为自身 ID
+		condition = "from_user_id = ?"
+	}
+	dbRes := contacts.Db.Preload("FromUser").Preload("ToUser").Find(&list, condition, u.ID)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
 			c,
