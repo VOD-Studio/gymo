@@ -1,6 +1,6 @@
 module rua.plus/gymo
 
-go 1.21.6
+go 1.22.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
