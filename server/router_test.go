@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -91,4 +92,46 @@ func TestRegister(t *testing.T) {
 	)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 409, w.Code)
+}
+
+func TestUserLogin(t *testing.T) {
+	os.Setenv("TOKEN_HOUR_LIFESPAN", "1")
+	mock := db.NewMockDB()
+	router := InitRouter()
+
+	var w *httptest.ResponseRecorder
+	var req *http.Request
+
+	// bad request
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/v1/login", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 400, w.Code)
+
+	var rows *sqlmock.Rows
+	rows = sqlmock.NewRows([]string{"id", "username", "email", "password"}).
+		AddRow(1, "xfy", "i@rua.plus", "$2a$10$nsCJiXlN2xJRJKZX.Krwd.0dKkm1uPhpGi1lukV2io1sLDvi8QsSO")
+	mock.ExpectQuery("^*$").WillReturnRows(rows)
+
+	// login success
+	var body []byte
+	body = []byte(`{"email": "i@rua.plus", "password": "123"}`)
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/v1/login", bytes.NewBuffer(body))
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestModifyUser(t *testing.T) {
+	/* mock := db.NewMockDB() */
+	router := InitRouter()
+
+	var w *httptest.ResponseRecorder
+	var req *http.Request
+
+	// unauthorized
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("PATCH", "/v1/user", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 401, w.Code)
 }
