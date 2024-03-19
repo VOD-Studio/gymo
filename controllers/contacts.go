@@ -142,6 +142,8 @@ func (contacts Contacts) FirendList(c *gin.Context) {
 
 	var list = []models.Contact{}
 	dbRes := contacts.Db.Model(&models.Contact{}).
+		Preload("User").
+		Preload("Firend").
 		Find(&list, "user_id = ?", u.ID)
 	if dbRes.Error != nil {
 		utils.FailedAndReturn(
