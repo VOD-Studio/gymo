@@ -225,7 +225,7 @@ func (contacts Contacts) RequestList(c *gin.Context) {
 
 type AcceptRequestInfo struct {
 	ID     uint `json:"id"     binding:"required"`
-	Accept bool `json:"accpet" binding:"required"`
+	Accept bool `json:"accept" binding:"required"`
 }
 
 // 接受好友请求的相关信息
@@ -288,6 +288,24 @@ func (contacts Contacts) AcceptRequest(c *gin.Context) {
 			dbRes.Error.Error(),
 		)
 		return
+	}
+
+	// add firend into contacts
+	firendList := &models.Contact{
+		FirendID: firendReq.FromUserID,
+		UserID:   u.ID,
+	}
+	if info.Accept {
+		dbRes = contacts.Db.Save(firendList)
+		if dbRes.Error != nil {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusInternalServerError,
+				dbRes.Error.Error(),
+			)
+			return
+		}
 	}
 
 	resp.Status = "ok"
