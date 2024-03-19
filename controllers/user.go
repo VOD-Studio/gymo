@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,9 @@ type User struct {
 
 // 查询用户
 type UserQuery struct {
-	Email string `form:"email" binding:"required,email"`
+	Uid      uint   `form:"uid"      binding:"required_without_all=Email Username"`
+	Email    string `form:"email"    binding:"required_without_all=Uid Username"`
+	Username string `form:"username" binding:"required_without_all=Email Uid"`
 }
 
 // 通过 email 查询用户
@@ -40,8 +43,19 @@ func (user User) GetUser(c *gin.Context) {
 		return
 	}
 
+	condition := "uid = ?"
+	conditionPara := strconv.FormatUint(uint64(userInfo.Uid), 10)
+	if userInfo.Email != "" {
+		condition = "email = ?"
+		conditionPara = userInfo.Email
+	}
+	if userInfo.Username != "" {
+		condition = "username = ?"
+		condition = userInfo.Username
+	}
+
 	u := &models.User{}
-	dbRes := user.Db.Model(u).First(u, "email = ?", userInfo.Email)
+	dbRes := user.Db.Model(u).First(u, condition, conditionPara)
 	if dbRes.Error != nil {
 		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
 			utils.FailedAndReturn(
