@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,41 +42,51 @@ func (user User) GetUser(c *gin.Context) {
 		return
 	}
 
-	condition := "uid = ?"
-	conditionPara := strconv.FormatUint(uint64(userInfo.Uid), 10)
-	if userInfo.Email != "" {
-		condition = "email = ?"
-		conditionPara = userInfo.Email
-	}
-	if userInfo.Username != "" {
-		condition = "username = ?"
-		condition = userInfo.Username
-	}
+	users := make([]*models.User, 0)
+	var dbRes *gorm.DB
 
-	u := &models.User{}
-	dbRes := user.Db.Model(u).First(u, condition, conditionPara)
-	if dbRes.Error != nil {
-		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+	defer func() {
+		if dbRes.Error != nil {
+			if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+				utils.FailedAndReturn(
+					c,
+					resp,
+					http.StatusUnprocessableEntity,
+					"user not exist",
+				)
+				return
+			}
 			utils.FailedAndReturn(
 				c,
 				resp,
-				http.StatusUnprocessableEntity,
-				"user not exist",
+				http.StatusInternalServerError,
+				dbRes.Error.Error(),
 			)
 			return
 		}
-		utils.FailedAndReturn(
-			c,
-			resp,
-			http.StatusInternalServerError,
-			dbRes.Error.Error(),
-		)
+
+		resp.Status = "ok"
+		resp.Data = users
+		c.JSON(http.StatusOK, resp)
+	}()
+
+	fmt.Println(userInfo, userInfo.Uid != 0, userInfo.Email != "", userInfo.Username != "")
+	if userInfo.Uid != 0 {
+		u := &models.User{}
+		dbRes = user.Db.Model(u).First(u, "uid = ?", userInfo.Uid)
+		users = append(users, u)
 		return
 	}
-
-	resp.Status = "ok"
-	resp.Data = u
-	c.JSON(http.StatusOK, resp)
+	if userInfo.Email != "" {
+		u := &models.User{}
+		dbRes = user.Db.Model(u).First(u, "email = ?", userInfo.Email)
+		users = append(users, u)
+		return
+	}
+	if userInfo.Username != "" {
+		dbRes = user.Db.Model(&models.User{}).Find(&users, "username = ?", userInfo.Username)
+		return
+	}
 }
 
 // 用户注册
