@@ -6,11 +6,13 @@ WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.sum,target=go.sum \
     --mount=type=bind,source=go.mod,target=go.mod \
-    go mod download -x
+    --mount=type=bind,source=Makefile,target=Makefile \
+	make deps
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
+    --mount=type=bind,source=Makefile,target=Makefile \
     --mount=type=bind,target=. \
-    CGO_ENABLED=0 go build -o /bin/server .
+	CGO_ENABLED=0 go build -o /bin/gymo .
 
 FROM alpine:latest AS final
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -31,8 +33,8 @@ RUN adduser \
     appuser
 USER appuser
 
-COPY --from=build /bin/server /bin/
+COPY --from=build /bin/gymo /bin/
 
 EXPOSE 4000
 
-ENTRYPOINT [ "/bin/server" ]
+ENTRYPOINT [ "/bin/gymo" ]

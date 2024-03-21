@@ -4,7 +4,7 @@ VERSION=0.0.1
 .PHONY: build
 ## build: Compile the packages.
 build:
-	@go build -v -o $(NAME)
+	@CGO_ENABLED=0 go build -v -o $(NAME)
 
 .PHONY: run
 ## run: Build and Run in development mode.
@@ -24,7 +24,7 @@ clean:
 .PHONY: deps
 ## deps: Download modules
 deps:
-	@go mod download
+	@go mod download -x
 
 .PHONY: test
 ## test: Run tests with verbose mode
