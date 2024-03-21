@@ -84,7 +84,7 @@ func (user User) GetUser(c *gin.Context) {
 	}
 	if userInfo.Username != "" {
 		dbRes = user.Db.Model(&models.User{}).
-			Find(&users, "username LIKE '%' || LOWER(?) || '%'", userInfo.Username)
+			Find(&users, "(username ILIKE '%' || ? || '%') OR ( ? ILIKE '%' || username || '%')", userInfo.Username, userInfo.Username)
 		return
 	}
 }
