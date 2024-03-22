@@ -43,10 +43,14 @@ type FirendRequest struct {
 }
 
 // 好友表
+// 关注表
+// UserID 为发起关注的人
+// FirendID 为被关注的人
+// 当 UserID 与 FirendID 双向时，则为双向关注
 type Contact struct {
 	BaseID
-	FirendID uint `json:"firend_id"` // 好友的 UID
-	UserID   uint `json:"user_id"`   // 自身的 UID
+	FirendID uint `json:"firend_id" gorm:"unique"` // 好友的 UID
+	UserID   uint `json:"user_id"`                 // 自身的 UID
 	User     User `json:"user"      gorm:"foreingKey:UserID"`
 	Firend   User `json:"firend"    gorm:"foreingKey:FirendID"`
 }

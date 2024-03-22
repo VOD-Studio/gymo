@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -19,6 +20,82 @@ type Contacts struct {
 
 type MakeFirendJson struct {
 	Uid uint `json:"uid" binding:"required"`
+}
+
+// 关注一个用户
+func (contacts Contacts) FollowUser(c *gin.Context) {
+	// response
+	resp := &utils.BasicRes{}
+	u := utils.GetContextUser(c, resp)
+
+	var info MakeFirendJson
+	if err := c.ShouldBindWith(&info, binding.JSON); err != nil {
+		utils.FailedAndReturn(c, resp, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// check is self
+	if info.Uid == u.UID {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusUnprocessableEntity,
+			"cannot make firend with self",
+		)
+		return
+	}
+
+	// find target user
+	firend := &models.User{}
+	dbRes := contacts.Db.Model(firend).First(firend, "uid = ?", info.Uid)
+	if dbRes.Error != nil {
+		if errors.Is(dbRes.Error, gorm.ErrRecordNotFound) {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusUnprocessableEntity,
+				"target user not exist",
+			)
+			return
+		}
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusInternalServerError,
+			dbRes.Error.Error(),
+		)
+		return
+	}
+
+	// check is already followed
+	followed := &models.Contact{
+		FirendID: firend.ID,
+		UserID:   u.ID,
+	}
+	dbRes = contacts.Db.Save(followed)
+	if dbRes.Error != nil {
+		if strings.Contains(dbRes.Error.Error(), "unique constraint") &&
+			strings.Contains(dbRes.Error.Error(), "contacts_firend_id_key") {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusConflict,
+				fmt.Sprintf("already followed user %d", info.Uid),
+			)
+		} else {
+			utils.FailedAndReturn(
+				c,
+				resp,
+				http.StatusInternalServerError,
+				dbRes.Error.Error(),
+			)
+		}
+		return
+	}
+
+	resp.Status = "ok"
+	resp.Message = ""
+	c.JSON(http.StatusOK, resp)
 }
 
 // 向指定的用户发送好友请求

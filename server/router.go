@@ -41,6 +41,7 @@ func InitRouter() *gin.Engine {
 		contacts := controllers.Contacts{
 			Db: db.Db,
 		}
+		v1.POST("/follow", contacts.FollowUser) // follow a user
 		v1.POST("/make_firend", contacts.MakeFirend)
 		v1.GET("/firends", contacts.FirendList)
 		v1.GET("/firend_requests", contacts.RequestList)
