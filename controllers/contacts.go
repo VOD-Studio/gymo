@@ -98,6 +98,7 @@ func (contacts Contacts) FollowUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// DEPRECATE: use follow user instead
 // 向指定的用户发送好友请求
 // 发送后将保存到 `firend_request` 表中
 // 同时向对方发送通知
@@ -211,12 +212,42 @@ func (contacts Contacts) MakeFirend(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+type FirendQuery struct {
+	Mode uint `form:"mode"`
+}
+
 // 获取当前账号的好友列表
+//
+// mode: 1 双向关注的好友
+//
+//	2 关注我的好友
+//	3 我关注的好友
 func (contacts Contacts) FirendList(c *gin.Context) {
 	// response
 	resp := &utils.BasicRes{}
 	u := utils.GetContextUser(c, resp)
 
+	queryType := &FirendQuery{}
+	if err := c.ShouldBindWith(&queryType, binding.Query); err != nil {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusBadRequest,
+			err.Error(),
+		)
+		return
+	}
+	if queryType.Mode < 1 || queryType.Mode > 3 {
+		utils.FailedAndReturn(
+			c,
+			resp,
+			http.StatusBadRequest,
+			"mode is invalid",
+		)
+		return
+	}
+
+	// TODO: 根据 mode 查询
 	var list = []models.Contact{}
 	dbRes := contacts.Db.Model(&models.Contact{}).
 		Preload("User").
