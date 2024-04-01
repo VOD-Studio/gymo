@@ -11,8 +11,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
-	"rua.plus/gymo/controllers"
 	"rua.plus/gymo/db"
+	"rua.plus/gymo/utils"
 )
 
 func TestRoot(t *testing.T) {
@@ -24,8 +24,9 @@ func TestRoot(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 
-	status := &controllers.RootStatus{
-		Status: "ok",
+	status := &utils.BasicRes{
+		Status:  "ok",
+		Message: "hello gymo",
 	}
 	resp, _ := json.Marshal(status)
 	assert.Equal(t, resp, w.Body.Bytes())
