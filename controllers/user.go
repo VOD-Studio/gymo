@@ -155,7 +155,7 @@ func (user User) AddUser(c *gin.Context) {
 type UserModify struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Email    string `json:"email"    binding:"email"`
+	Email    string `json:"email"`
 }
 
 func (user User) ModifyUser(c *gin.Context) {
