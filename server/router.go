@@ -1,6 +1,8 @@
 package server
 
 import (
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
@@ -29,10 +31,13 @@ func InitRouter() *gin.Engine {
 	}
 	router.Use(cors.New(config))
 
+	router.Static("/docs/", os.Getenv("DOCS_ROOT"))
+
 	v1 := router.Group("/v1")
 
 	root := controllers.RootController{}
 	v1.GET("/", root.Root)
+	router.GET("/", root.Root)
 
 	// user
 	user := controllers.User{

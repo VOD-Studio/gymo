@@ -25,3 +25,4 @@ go.work
 .idea
 db-data
 password.txt
+assets/

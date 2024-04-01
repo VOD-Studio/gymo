@@ -1,19 +1,20 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"rua.plus/gymo/utils"
 )
 
 type RootController struct{}
 
-type RootStatus struct {
-	Status string `json:"status"`
-}
-
 func (root RootController) Root(c *gin.Context) {
-	status := &RootStatus{
-		Status: "ok",
+	resp := &utils.BasicRes{
+		Status:  "ok",
+		Message: "hello gymo",
 	}
-	c.JSON(http.StatusOK, status)
+
+	c.JSON(http.StatusOK, resp)
 }
