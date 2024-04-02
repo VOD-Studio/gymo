@@ -15,6 +15,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 	CGO_ENABLED=0 go build -o /bin/gymo .
 
 FROM alpine:latest AS final
+
+WORKDIR /app
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
         ca-certificates \
@@ -33,8 +35,9 @@ RUN adduser \
     appuser
 USER appuser
 
-COPY --from=build /bin/gymo /bin/
+COPY ./docs /app/docs
+COPY --from=build /bin/gymo /app/
 
 EXPOSE 4000
 
-ENTRYPOINT [ "/bin/gymo" ]
+ENTRYPOINT [ "/app/gymo" ]
